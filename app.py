@@ -246,8 +246,8 @@ header_html = f"""
         <img src="{logo_url}" class="yoco-logo-small" alt="YOCO">
         <span>publication</span>
     </div>
-    <div class="tagline-text">Wake up to growth</div>
-    <div class="description-text">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
+    <div class="tagline-text">Power your hustle</div>
+    <div class="description-text">Practical insights, guides, and tools for the entrepreneurs making it happen.</div>
 </div>
 """
 st.markdown(header_html, unsafe_allow_html=True)
