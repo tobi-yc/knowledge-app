@@ -219,7 +219,7 @@ with st.container():
             with st.chat_message("assistant", avatar="⚡"):
                 try:
                     genai.configure(api_key=api_key)
-                    model = models/gemini-2.5-flash
+                    genai.GenerativeModel('models/gemini-2.5-flash')
                     system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
                                      "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
                                      f"User question: {user_query}")
