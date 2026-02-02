@@ -4,19 +4,17 @@ import os
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(
-    page_title="Yoco Merchant Insights",
-    page_icon="💳",
+    page_title="Yoco Vuka",
+    page_icon="⚡", # Vuka implies energy/waking up
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# [ACTION REQUIRED] Replace with your actual key or set in environment variables
-# os.environ["GEMINI_API_KEY"] = "YOUR_ACTUAL_API_KEY_HERE"
+# --- 2. SETUP GEMINI AI ---
+# Gets key from Streamlit Cloud Secrets or local environment
+api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-# Try to get key from secrets or environment
-api_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
-
-# --- 2. DATA (Ported from your HTML) ---
+# --- 3. DATA CONTENT ---
 CONTENT_DATA = [
     {"category": "Starting Your Business", "title": "12 Most Profitable Business Ideas in SA for 2026", "summary": "Highlights high-potential ideas like boutique fitness studios and artisanal coffee shops. Helps aspiring founders validate opportunities.", "source": "Lula", "link": "https://lula.co.za/blog/sme-advice/top-12-business-ideas-in-south-africa/", "location": "South Africa", "type": "article"},
     {"category": "Starting Your Business", "title": "How to Start a Food Business in SA (7 Steps)", "summary": "A step-by-step guide covering concept definition, business registration, and food safety compliance.", "source": "ASC Consultants", "link": "https://ascconsultants.co.za/how-to-start-a-food-business-in-south-africa/", "location": "South Africa", "type": "guide"},
@@ -44,55 +42,110 @@ SUGGESTIONS = [
     "How do I submit my VAT return?", 
     "What are the latest food trends for 2026?", 
     "How do I draft a basic employment contract?", 
-    "What are some low-cost marketing ideas?"
+    "Low cost marketing ideas for SA"
 ]
 
-# --- 3. CUSTOM CSS (Yoco Theme) ---
+# --- 4. CSS STYLING (YOCO BRANDING) ---
+# Yoco Blue: #009fe3 | Yoco Dark: #232d39 | Clean Sans-Serif Fonts
 st.markdown("""
 <style>
-    /* Branding */
-    :root { --yoco-blue: #009fe3; --yoco-dark: #232d39; --text-grey: #5c6c7f; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* COLORS */
+    :root {
+        --yoco-blue: #009fe3;
+        --yoco-dark: #232d39;
+        --text-grey: #5c6c7f;
+    }
     
-    /* Hero Section */
+    /* REMOVE DEFAULT STREAMLIT PADDING */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 5rem;
+    }
+    
+    /* HERO SECTION */
     .hero-container {
         background-color: #232d39;
-        padding: 60px 20px;
+        padding: 4rem 2rem 5rem 2rem;
         text-align: center;
-        border-radius: 0 0 20px 20px;
-        margin: -4rem -4rem 2rem -4rem; /* Break out of Streamlit padding */
+        border-radius: 0 0 24px 24px;
+        margin: -6rem -4rem 2rem -4rem; /* Negative margins to fill top */
         color: white;
     }
-    .hero-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .hero-sub { opacity: 0.9; max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
+    
+    .hero-brand {
+        font-weight: 900;
+        font-size: 1.2rem;
+        text-transform: lowercase;
+        color: #009fe3;
+        letter-spacing: -1px;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        letter-spacing: -1px;
+    }
+    
+    .hero-sub {
+        opacity: 0.85;
+        max-width: 600px;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        font-weight: 400;
+        line-height: 1.6;
+    }
 
-    /* Cards */
+    /* CARD STYLING */
     div[data-testid="stColumn"] {
         background-color: white;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #eef0f2;
         border-radius: 12px;
-        padding: 20px;
-        transition: transform 0.2s;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        padding: 24px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         height: 100%;
         display: flex;
         flex-direction: column;
     }
+    
     div[data-testid="stColumn"]:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15); /* Yoco Blue Shadow */
         border-color: #009fe3;
     }
 
-    /* Tags & Pills */
+    /* PILLS & TAGS */
     .type-pill {
-        font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
-        padding: 4px 8px; border-radius: 4px; background: #f4f6f8; color: #5c6c7f;
-        margin-bottom: 10px; display: inline-block;
+        font-size: 0.65rem; 
+        font-weight: 800; 
+        text-transform: uppercase;
+        padding: 6px 10px; 
+        border-radius: 6px; 
+        background: #f4f6f8; 
+        color: #5c6c7f;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        margin-bottom: 12px;
     }
+    
     .category-pill {
-        font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-        padding: 6px 12px; border-radius: 20px;
-        margin-top: 15px; margin-bottom: 5px; display: inline-block;
+        font-size: 0.7rem; 
+        font-weight: 700; 
+        text-transform: uppercase;
+        padding: 6px 12px; 
+        border-radius: 20px;
+        margin-top: auto; /* Pushes to bottom */
+        margin-bottom: 16px;
+        display: inline-block;
+        letter-spacing: 0.5px;
     }
     
     /* Category Colors */
@@ -103,101 +156,151 @@ st.markdown("""
     .cat-operating { background: #e3f2fd; color: #1565c0; }
     .cat-team { background: #f1f8e9; color: #33691e; }
     
-    /* Text */
-    h3 { font-size: 1.1rem; font-weight: 700; color: #232d39; margin-top: 5px; height: 60px; overflow: hidden;}
-    p { font-size: 0.9rem; color: #5c6c7f; line-height: 1.5; height: 100px; overflow: hidden; }
-    .source-text { font-size: 0.8rem; color: #999; margin-top: 15px; }
-    a { text-decoration: none; color: #009fe3; font-weight: 700; font-size: 0.9rem; }
+    /* TEXT */
+    h3 { 
+        font-size: 1.15rem; 
+        font-weight: 700; 
+        color: #232d39; 
+        margin: 0 0 10px 0; 
+        line-height: 1.3;
+        min-height: 3.9em; /* Aligns cards */
+    }
+    
+    p { 
+        font-size: 0.95rem; 
+        color: #5c6c7f; 
+        line-height: 1.6; 
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+    
+    .source-text { 
+        font-size: 0.8rem; 
+        color: #999; 
+        border-top: 1px solid #f4f6f8;
+        padding-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    a { 
+        text-decoration: none; 
+        color: #009fe3; 
+        font-weight: 700; 
+        font-size: 0.85rem; 
+        transition: color 0.2s;
+    }
+    
+    a:hover { color: #007bb0; }
+
+    /* HIDE STREAMLIT ELEMENTS */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
 
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. HERO & AI CHAT ---
+# --- 5. RENDER UI ---
+
+# Hero Header
 st.markdown("""
 <div class="hero-container">
-    <div class="hero-title">Grow your business with confidence</div>
-    <div class="hero-sub">Curated guides, news, and actionable insights for South African entrepreneurs.</div>
+    <div class="hero-brand">yoco vuka</div>
+    <div class="hero-title">Wake up to growth</div>
+    <div class="hero-sub">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
 </div>
 """, unsafe_allow_html=True)
 
-# AI Logic
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    prompt = st.chat_input("Ask anything about running your business...")
+# AI Chat Section
+# We use columns to center the chat input nicely
+c1, c2, c3 = st.columns([1, 2, 1])
+
+with c2:
+    prompt = st.chat_input("Ask Vuka AI anything (e.g. 'How do I register my business?')")
     
-    # Prompt Chips
-    st.write("Try asking:")
-    cols = st.columns(len(SUGGESTIONS))
-    for i, sug in enumerate(SUGGESTIONS):
-        # Streamlit doesn't support clicking to populate chat input natively well
-        # so we display them as static suggestions or buttons that print to chat
-        st.caption(f"• {sug}")
+    # Prompt Chips (Static display for visual cue)
+    st.markdown(
+        "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:10px;'>Try asking: " 
+        + "  •  ".join([f"<i>{s}</i>" for s in SUGGESTIONS]) 
+        + "</div>", 
+        unsafe_allow_html=True
+    )
 
 if prompt:
+    st.write("") # Spacer
     if not api_key:
-        st.error("⚠️ Gemini API Key is missing. Please set it in secrets or environment variables.")
+        st.error("⚠️ Gemini API Key is missing. Add it to Streamlit Secrets.")
     else:
-        with st.chat_message("user"):
-            st.write(prompt)
+        with st.container():
+            st.markdown(f"**You:** {prompt}")
             
-        with st.chat_message("assistant"):
-            try:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                
-                # Contextual System Prompt
-                system_prompt = (
-                    "You are a helpful assistant for South African small business owners using Yoco. "
-                    "Keep answers concise, practical, and relevant to the local SA context. "
-                    f"User question: {prompt}"
-                )
-                
-                with st.spinner("Thinking..."):
-                    response = model.generate_content(system_prompt)
-                    st.write(response.text)
-            except Exception as e:
-                st.error(f"AI Error: {str(e)}")
-
-
-# --- 5. FILTERS & CONTENT ---
-
-# Filter Logic using Streamlit Pills (New Feature) or Radio/Selectbox
-categories = ["All", "Starting Your Business", "Reaching Customers", "Selling Anywhere", 
-              "Managing Your Finances", "Operating Your Business", "Growing Your Team"]
-
-selected_category = st.selectbox("Filter by Category:", categories, index=0)
-
-# Filter Data
-filtered_data = CONTENT_DATA if selected_category == "All" else [item for item in CONTENT_DATA if item["category"] == selected_category]
+            # AI Response Container with Yoco styling
+            with st.chat_message("assistant", avatar="⚡"):
+                try:
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    system_prompt = (
+                        "You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
+                        "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
+                        f"User question: {prompt}"
+                    )
+                    
+                    with st.spinner("Vuka is thinking..."):
+                        response = model.generate_content(system_prompt)
+                        st.write(response.text)
+                except Exception as e:
+                    st.error(f"Connection Error: {str(e)}")
 
 st.markdown("---")
 
-# Render Grid
-# Streamlit grid hack: Create 3 columns, distribute items
-cols = st.columns(3)
+# --- 6. FILTERS & GRID ---
 
-for i, item in enumerate(filtered_data):
-    # Determine color class
-    color_map = {
-        "Starting Your Business": "cat-starting",
-        "Reaching Customers": "cat-reaching",
-        "Selling Anywhere": "cat-selling",
-        "Managing Your Finances": "cat-finances",
-        "Operating Your Business": "cat-operating",
-        "Growing Your Team": "cat-team"
-    }
-    cat_class = color_map.get(item['category'], 'cat-operating')
-    
-    # Use HTML injection for the card look inside the column
-    with cols[i % 3]:
-        st.markdown(f"""
-            <div class="type-pill">{item['type']}</div>
-            <div style="font-size:0.7rem; float:right; color:#999;">📍 {item['location']}</div>
-            <h3>{item['title']}</h3>
-            <p>{item['summary']}</p>
-            <div class="category-pill {cat_class}">{item['category']}</div>
-            <div class="source-text">
-                Source: {item['source']} 
-                <span style="float:right;"><a href="{item['link']}" target="_blank">Read ➜</a></span>
-            </div>
-        """, unsafe_allow_html=True)
+# Using a native selectbox for filtering to keep it mobile-friendly
+categories = ["All", "Starting Your Business", "Reaching Customers", "Selling Anywhere", 
+              "Managing Your Finances", "Operating Your Business", "Growing Your Team"]
+
+c_filter, c_spacer = st.columns([1, 3])
+with c_filter:
+    selected_category = st.selectbox("Filter insights by:", categories, index=0)
+
+# Filter Data logic
+filtered_data = CONTENT_DATA if selected_category == "All" else [item for item in CONTENT_DATA if item["category"] == selected_category]
+
+# Render Grid
+# We calculate rows to ensure the grid wraps correctly
+cols_per_row = 3
+rows = [filtered_data[i:i + cols_per_row] for i in range(0, len(filtered_data), cols_per_row)]
+
+for row in rows:
+    cols = st.columns(cols_per_row)
+    for i, item in enumerate(row):
+        
+        # Color Logic
+        color_map = {
+            "Starting Your Business": "cat-starting",
+            "Reaching Customers": "cat-reaching",
+            "Selling Anywhere": "cat-selling",
+            "Managing Your Finances": "cat-finances",
+            "Operating Your Business": "cat-operating",
+            "Growing Your Team": "cat-team"
+        }
+        cat_class = color_map.get(item['category'], 'cat-operating')
+        
+        # Card HTML
+        with cols[i]:
+            st.markdown(f"""
+                <div style="height:100%;">
+                    <div class="type-pill">{item['type']}</div>
+                    <div style="font-size:0.7rem; float:right; color:#999;">📍 {item['location']}</div>
+                    <h3>{item['title']}</h3>
+                    <p>{item['summary']}</p>
+                    <div class="category-pill {cat_class}">{item['category']}</div>
+                    <div class="source-text">
+                        {item['source']} 
+                        <span style="float:right;"><a href="{item['link']}" target="_blank">Read ➜</a></span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
