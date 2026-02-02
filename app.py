@@ -82,8 +82,10 @@ def run_search(query):
     # Run Gemini Search
     try:
         genai.configure(api_key=api_key)
-        # Using a model that is generally available; adjust version if needed
-        model = genai.GenerativeModel('models/gemini-1.5-flash') 
+        
+        # --- MODEL UPDATE HERE ---
+        # Using the specific model requested
+        model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
         system_prompt = (
             "You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
@@ -148,10 +150,6 @@ st.markdown("""
         /* Minor adjustment to align text baseline with the logo */
         padding-top: 10px; 
     }
-    
-    /* CUSTOM SEARCH BAR POSITIONING */
-    /* This targets the chat input or text input if we use standard widgets */
-    /* Adjusting standard Streamlit spacing */
     
     /* PROMPT BUTTONS */
     .stButton button {
@@ -237,7 +235,6 @@ header_html = f"""
 st.markdown(header_html, unsafe_allow_html=True)
 
 # B. SEARCH INPUT
-# We use st.text_input to capture the query
 current_query = st.text_input("", 
                               placeholder="Ask Vuka AI anything...", 
                               key="main_search_input",
@@ -287,12 +284,6 @@ st.markdown("---")
 
 categories = list(CATEGORY_COLORS.keys())
 
-# Note: st.pills is a newer feature. If your streamlit version is older, use st.multiselect
-# When interacting with these filters, we do NOT re-run the AI search 
-# because the AI state is stored in session_state, but we ensure 'ai_visible' 
-# is set to False (or kept as is) if you prefer auto-hiding.
-# User requirement: "When click filters... it should just hide/rollup the ai result"
-
 def on_filter_change():
     # If a filter is clicked, hide the AI result to reduce clutter
     if st.session_state.ai_result:
@@ -310,7 +301,6 @@ selected_categories = st.pills(
 custom_pills_css = "<style>"
 for i, cat_name in enumerate(categories):
     color = CATEGORY_COLORS[cat_name]
-    # Note: nth-of-type might vary based on Streamlit DOM structure updates
     custom_pills_css += f"""
     div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
         background-color: {color} !important;
