@@ -4,7 +4,7 @@ import os
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(
-    page_title="Yoco Vuka",
+    page_title="Phanda | A Yoco Publication",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -77,12 +77,12 @@ def run_search(query):
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
         system_prompt = (
-            "You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
+            "You are 'Phanda', a helpful business assistant for Yoco merchants in South Africa. "
             "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
             f"User question: {query}"
         )
         
-        with st.spinner("Vuka is thinking..."):
+        with st.spinner("Phanda is thinking..."):
             response = model.generate_content(system_prompt)
             st.session_state.ai_result = response.text
             
@@ -92,25 +92,22 @@ def run_search(query):
 # --- CALLBACKS (Crucial for button stability) ---
 
 def toggle_ai_visibility():
-    """Toggles the AI visibility state directly."""
     st.session_state.ai_visible = not st.session_state.ai_visible
 
 def handle_search_submit():
-    """Handles text input changes safely."""
     query = st.session_state.main_search_input
-    # Only run search if the query is different from what we already have
     if query and query != st.session_state.search_query:
         run_search(query)
 
 def on_filter_change():
-    """Hides AI result when filters change, but keeps the data ready."""
     if st.session_state.ai_result:
         st.session_state.ai_visible = False
 
 # --- 6. CSS STYLING ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Inter:wght@400;600;700;900&display=swap');
+    /* Import 'Anton' for the big PHANDA header, and Inter for body */
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;900&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
@@ -128,10 +125,10 @@ st.markdown("""
         padding-bottom: 5rem;
     }
 
-    /* HEADER */
+    /* HEADER CONTAINER */
     .yoco-header-container {
-        background-color: #0F172A;
-        padding: 3rem 2rem;
+        background-color: #0F172A; /* Deep Navy */
+        padding: 4rem 2rem 3rem 2rem;
         border-radius: 15px;
         margin-bottom: 30px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -140,25 +137,53 @@ st.markdown("""
         align-items: center;
         text-align: center;
     }
-    .logo-row {
+
+    /* 1. PHANDA HEADER */
+    .phanda-title {
+        font-family: 'Anton', sans-serif; /* Big, Impact-style font */
+        font-size: 8rem; /* Massive size */
+        color: #FFFFFF;
+        line-height: 0.9;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+    }
+
+    /* 2. SUB-ROW: 'a [Logo] publication' */
+    .sub-row {
         display: flex;
         align-items: center;
-        gap: 25px;
-        margin-bottom: 15px;
+        justify-content: center;
+        gap: 12px;
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 400;
+        opacity: 0.9;
     }
-    .yoco-logo-img { height: 85px; width: auto; }
-    .vuka-text {
+
+    /* Small Logo for the sub-row */
+    .yoco-logo-small {
+        height: 24px; /* Scaled down to fit with text */
+        width: auto;
+        margin-top: 2px; /* Visual alignment */
+    }
+
+    /* TAGLINE */
+    .tagline-text {
+        margin-top: 25px;
         font-family: 'Montserrat', sans-serif;
-        font-weight: 700; font-size: 80px; color: #FFFFFF;
-        letter-spacing: -1.5px; line-height: 1; padding-top: 10px;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #FFFFFF;
     }
-    .tagline {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700; font-size: 2rem; color: #FFFFFF; margin-bottom: 0.5rem;
-    }
-    .description {
-        font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #94A3B8;
-        max-width: 600px; line-height: 1.5;
+    
+    .description-text {
+        margin-top: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        color: #94A3B8;
+        max-width: 600px;
     }
 
     /* BUTTONS & CARDS */
@@ -212,14 +237,17 @@ st.markdown("""
 
 # A. HEADER
 logo_url = "https://files.buildwithfern.com/yoco.docs.buildwithfern.com/ccc94a27f557100203d0ba7856f74a66a6db873418e282ad02238632d2091e7c/pages/docs/logos/yoco.svg"
+
 header_html = f"""
 <div class="yoco-header-container">
-    <div class="logo-row">
-        <img src="{logo_url}" class="yoco-logo-img" alt="YOCO">
-        <span class="vuka-text">Vuka</span>
+    <div class="phanda-title">PHANDA</div>
+    <div class="sub-row">
+        <span>a</span>
+        <img src="{logo_url}" class="yoco-logo-small" alt="YOCO">
+        <span>publication</span>
     </div>
-    <div class="tagline">Wake up to growth</div>
-    <div class="description">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
+    <div class="tagline-text">Wake up to growth</div>
+    <div class="description-text">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
 </div>
 """
 st.markdown(header_html, unsafe_allow_html=True)
@@ -227,7 +255,7 @@ st.markdown(header_html, unsafe_allow_html=True)
 # B. SEARCH INPUT
 # Using on_change callback to trigger search safely
 st.text_input("", 
-              placeholder="Ask Vuka AI anything...", 
+              placeholder="Ask Phanda AI anything...", 
               key="main_search_input",
               value=st.session_state.search_query,
               on_change=handle_search_submit)
@@ -236,7 +264,6 @@ st.text_input("",
 cols = st.columns(len(EXAMPLE_PROMPTS))
 for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
     with cols[i]:
-        # Clicking a button runs the search via direct call and rerun
         if st.button(prompt_text, use_container_width=True):
             run_search(prompt_text)
             st.rerun()
