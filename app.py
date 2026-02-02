@@ -1,16 +1,3 @@
-Here is the updated solution.
-
-### **Key Changes Made**
-
-1. **Moved the Search Bar:** Switched from `st.chat_input` (which is stuck to the bottom) to a customized `st.text_input` placed directly inside the Hero section at the top.
-2. **Dynamic Filter Colors:** Added a logic block that detects which category is selected and injects specific CSS to turn the active filter button that specific color (e.g., Purple for Marketing, Red for Finances).
-3. **Full Width Search:** Removed the columns constraints so the search bar fills the space naturally.
-
-### **`app.py`**
-
-Replace your file with this code.
-
-```python
 import streamlit as st
 import google.generativeai as genai
 import os
@@ -369,5 +356,3 @@ for row in rows:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-
-```
