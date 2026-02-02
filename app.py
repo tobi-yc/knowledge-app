@@ -1,6 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 import os
+import time
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(
@@ -11,9 +12,18 @@ st.set_page_config(
 )
 
 # --- 2. SETUP GEMINI AI ---
+# Ensure you have set this in your .streamlit/secrets.toml file or environment variables
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-# --- 3. DATA & COLORS ---
+# --- 3. SESSION STATE INITIALIZATION ---
+if 'search_query' not in st.session_state:
+    st.session_state.search_query = ""
+if 'ai_result' not in st.session_state:
+    st.session_state.ai_result = None
+if 'ai_visible' not in st.session_state:
+    st.session_state.ai_visible = False
+
+# --- 4. DATA & COLORS ---
 CATEGORY_COLORS = {
     "Starting Your Business": "#00695c",  # Teal
     "Reaching Customers": "#7b1fa2",      # Purple
@@ -55,10 +65,43 @@ EXAMPLE_PROMPTS = [
     "Food trends for 2026"
 ]
 
-# --- 4. CSS STYLING ---
+# --- 5. HELPER FUNCTIONS ---
+def run_search(query):
+    """
+    Sets the query state, makes the AI result visible, 
+    and simulates/runs the search.
+    """
+    st.session_state.search_query = query
+    st.session_state.ai_visible = True
+    
+    # Check API Key
+    if not api_key:
+        st.session_state.ai_result = "⚠️ Please configure your Gemini API Key in .streamlit/secrets.toml"
+        return
+
+    # Run Gemini Search
+    try:
+        genai.configure(api_key=api_key)
+        # Using a model that is generally available; adjust version if needed
+        model = genai.GenerativeModel('models/gemini-1.5-flash') 
+        
+        system_prompt = (
+            "You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
+            "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
+            f"User question: {query}"
+        )
+        
+        with st.spinner("Vuka is thinking..."):
+            response = model.generate_content(system_prompt)
+            st.session_state.ai_result = response.text
+            
+    except Exception as e:
+        st.session_state.ai_result = f"Error communicating with AI: {str(e)}"
+
+# --- 6. CSS STYLING ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Inter:wght@400;600;700;900&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
@@ -76,63 +119,39 @@ st.markdown("""
         padding-top: 1rem;
         padding-bottom: 5rem;
     }
-    
-    /* HERO SECTION */
-    .hero-container {
-        background-color: #232d39;
-        padding: 4rem 2rem 7rem 2rem; /* Increased bottom padding for search bar */
-        text-align: center;
-        border-radius: 0 0 24px 24px;
-        margin: -6rem -4rem 0rem -4rem; 
-        color: white;
-    }
-    
-    .hero-brand {
-        font-weight: 900;
-        font-size: 1.2rem;
-        text-transform: lowercase;
-        color: #009fe3;
-        letter-spacing: -1px;
-        margin-bottom: 1rem;
-    }
-    
-    .hero-title {
-        font-size: 3rem;
-        font-weight: 900;
-        margin-bottom: 0.5rem;
-        letter-spacing: -1px;
-    }
-    
-    .hero-sub {
-        opacity: 0.85;
-        max-width: 600px;
-        margin: 0 auto;
-        font-size: 1.1rem;
-        font-weight: 400;
-        line-height: 1.6;
+
+    /* --- NEW HEADER STYLING --- */
+    .yoco-header-container {
+        /* Dark background: Necessary to see both Blue Logo and White Text */
+        background-color: #0F172A; /* Deep Navy/Black */
+        padding: 2.5rem 2rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 25px; /* Spacing between Logo and Text */
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    /* CUSTOM SEARCH BAR */
-    div[data-testid="stTextInput"] {
-        margin-top: -3.5rem; 
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;
-        z-index: 999;
+    .yoco-logo-img {
+        height: 85px; /* Large Header Size */
+        width: auto;
     }
 
-    .stTextInput input {
-        border-radius: 50px;
-        padding: 15px 25px;
-        border: 1px solid transparent;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        font-size: 1rem;
+    .vuka-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700; /* Bold */
+        font-size: 80px; /* Large Header Size */
+        color: #FFFFFF; /* White Text */
+        letter-spacing: -1.5px;
+        line-height: 1;
+        /* Minor adjustment to align text baseline with the logo */
+        padding-top: 10px; 
     }
-    .stTextInput input:focus {
-        border-color: #009fe3;
-        box-shadow: 0 8px 30px rgba(0, 159, 227, 0.3);
-    }
+    
+    /* CUSTOM SEARCH BAR POSITIONING */
+    /* This targets the chat input or text input if we use standard widgets */
+    /* Adjusting standard Streamlit spacing */
     
     /* PROMPT BUTTONS */
     .stButton button {
@@ -205,81 +224,93 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 5. UI LAYOUT ---
+# --- 7. UI LAYOUT ---
 
-# Initialize Session State for Search
-if 'search_query' not in st.session_state:
-    st.session_state.search_query = ""
+# A. HEADER
+logo_url = "https://files.buildwithfern.com/yoco.docs.buildwithfern.com/ccc94a27f557100203d0ba7856f74a66a6db873418e282ad02238632d2091e7c/pages/docs/logos/yoco.svg"
+header_html = f"""
+<div class="yoco-header-container">
+    <img src="{logo_url}" class="yoco-logo-img" alt="YOCO">
+    <span class="vuka-text">Vuka</span>
+</div>
+"""
+st.markdown(header_html, unsafe_allow_html=True)
 
-# Function to handle button click
-def set_search(query):
-    st.session_state.search_query = query
+# B. SEARCH INPUT
+# We use st.text_input to capture the query
+current_query = st.text_input("", 
+                              placeholder="Ask Vuka AI anything...", 
+                              key="main_search_input",
+                              value=st.session_state.search_query)
 
-# A. HERO SECTION
-with st.container():
-    st.markdown("""
-    <div class="hero-container">
-        <div class="hero-brand">yoco vuka</div>
-        <div class="hero-title">Wake up to growth</div>
-        <div class="hero-sub">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
-    </div>
-    """, unsafe_allow_html=True)
+# Check if the user typed something new and hit enter
+if current_query and current_query != st.session_state.search_query:
+    run_search(current_query)
+    st.rerun()
 
-    # B. SEARCH BAR
-    # Bound to session state key 'search_query'
-    user_query = st.text_input("", 
-                               placeholder="Ask Vuka AI anything...", 
-                               key="search_input", # Unique key for the widget
-                               value=st.session_state.search_query) 
+# C. EXAMPLE PROMPTS
+cols = st.columns(len(EXAMPLE_PROMPTS))
+for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
+    with cols[i]:
+        # Clicking a button runs the search
+        if st.button(prompt_text, use_container_width=True):
+            run_search(prompt_text)
+            st.rerun()
 
-    # C. PROMPT BUTTONS (Clickable)
-    # Create columns to center them slightly or spread them
-    cols = st.columns([1, 1, 1, 1, 1])
+# D. AI RESULT SECTION (With Hide/Show Logic)
+if st.session_state.ai_result:
+    st.markdown("---")
     
-    # We iterate and create a button for each prompt
-    for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
-        with cols[i]:
-            if st.button(prompt_text, use_container_width=True):
-                set_search(prompt_text)
-                st.rerun()
-
-    # D. AI LOGIC
-    # Check if we have a query from either typing or button click
-    final_query = st.session_state.search_query if st.session_state.search_query else user_query
-    
-    # Update session state if user typed manually
-    if user_query != st.session_state.search_query:
-        st.session_state.search_query = user_query
-        final_query = user_query
-
-    if final_query:
-        if not api_key:
-            st.error("⚠️ Gemini API Key is missing.")
+    # Header for the result area with the Toggle Button
+    col_res_1, col_res_2 = st.columns([5, 1])
+    with col_res_1:
+        if st.session_state.ai_visible:
+            st.caption(f"🤖 AI Insight for: **{st.session_state.search_query}**")
         else:
-            with st.chat_message("assistant", avatar="⚡"):
-                try:
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('models/gemini-2.5-flash')
-                    system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
-                                     "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
-                                     f"User question: {final_query}")
-                    with st.spinner("Vuka is thinking..."):
-                        response = model.generate_content(system_prompt)
-                        st.write(response.text)
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
+            st.caption(f"🤖 AI Insight (Hidden) for: **{st.session_state.search_query}**")
+            
+    with col_res_2:
+        # Hide/Show Toggle
+        btn_label = "🙈 Hide" if st.session_state.ai_visible else "👁️ Show"
+        if st.button(btn_label, key="toggle_ai"):
+            st.session_state.ai_visible = not st.session_state.ai_visible
+            st.rerun()
+
+    # Conditionally display the result
+    if st.session_state.ai_visible:
+        with st.chat_message("assistant", avatar="⚡"):
+            st.write(st.session_state.ai_result)
 
 st.markdown("---")
 
-# --- 6. FILTERS (MULTI-SELECT PILLS) ---
+# --- 8. FILTERS & CONTENT GRID ---
 
 categories = list(CATEGORY_COLORS.keys())
-selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
+
+# Note: st.pills is a newer feature. If your streamlit version is older, use st.multiselect
+# When interacting with these filters, we do NOT re-run the AI search 
+# because the AI state is stored in session_state, but we ensure 'ai_visible' 
+# is set to False (or kept as is) if you prefer auto-hiding.
+# User requirement: "When click filters... it should just hide/rollup the ai result"
+
+def on_filter_change():
+    # If a filter is clicked, hide the AI result to reduce clutter
+    if st.session_state.ai_result:
+        st.session_state.ai_visible = False
+
+selected_categories = st.pills(
+    "Filter insights:", 
+    categories, 
+    selection_mode="multi", 
+    key="cat_filter",
+    on_change=on_filter_change
+)
 
 # --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
 custom_pills_css = "<style>"
 for i, cat_name in enumerate(categories):
     color = CATEGORY_COLORS[cat_name]
+    # Note: nth-of-type might vary based on Streamlit DOM structure updates
     custom_pills_css += f"""
     div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
         background-color: {color} !important;
@@ -293,7 +324,6 @@ for i, cat_name in enumerate(categories):
     """
 custom_pills_css += "</style>"
 st.markdown(custom_pills_css, unsafe_allow_html=True)
-
 
 # Filter Logic
 if not selected_categories:
