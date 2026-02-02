@@ -14,7 +14,6 @@ st.set_page_config(
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 # --- 3. DATA & COLORS ---
-# Hex codes matching your specific Yoco/Category palette
 CATEGORY_COLORS = {
     "Starting Your Business": "#00695c",  # Teal
     "Reaching Customers": "#7b1fa2",      # Purple
@@ -79,7 +78,7 @@ st.markdown("""
     /* HERO SECTION */
     .hero-container {
         background-color: #232d39;
-        padding: 4rem 2rem 6rem 2rem; /* Bottom padding overlaps search */
+        padding: 4rem 2rem 6rem 2rem; 
         text-align: center;
         border-radius: 0 0 24px 24px;
         margin: -6rem -4rem 0rem -4rem; 
@@ -219,7 +218,8 @@ with st.container():
             with st.chat_message("assistant", avatar="⚡"):
                 try:
                     genai.configure(api_key=api_key)
-                    genai.GenerativeModel('models/gemini-2.5-flash')
+                    # UPDATED MODEL VERSION HERE
+                    model = genai.GenerativeModel('models/gemini-2.5-flash')
                     system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
                                      "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
                                      f"User question: {user_query}")
@@ -237,11 +237,9 @@ categories = list(CATEGORY_COLORS.keys())
 selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
 
 # --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
-# This matches the button index to the specific category color
 custom_pills_css = "<style>"
 for i, cat_name in enumerate(categories):
     color = CATEGORY_COLORS[cat_name]
-    # We use nth-of-type to target each specific button in order
     custom_pills_css += f"""
     div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
         background-color: {color} !important;
