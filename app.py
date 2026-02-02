@@ -70,7 +70,7 @@ st.markdown("""
         --text-grey: #5c6c7f;
     }
     
-    /* REMOVE PADDING */
+    /* RESET PADDING */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 5rem;
@@ -79,7 +79,7 @@ st.markdown("""
     /* HERO SECTION */
     .hero-container {
         background-color: #232d39;
-        padding: 4rem 2rem 6rem 2rem; /* Added bottom padding to overlap search */
+        padding: 4rem 2rem 6rem 2rem; /* Bottom padding overlaps search */
         text-align: center;
         border-radius: 0 0 24px 24px;
         margin: -6rem -4rem 0rem -4rem; 
@@ -111,10 +111,10 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* CUSTOM SEARCH BAR (Floating) */
-    /* Target the text input container to float it up into the hero */
+    /* CUSTOM SEARCH BAR */
+    /* Shifts text input up to overlap the hero section */
     div[data-testid="stTextInput"] {
-        margin-top: -3.5rem; /* Pulls it up into the hero section */
+        margin-top: -3.5rem; 
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
@@ -166,7 +166,7 @@ st.markdown("""
         display: inline-block; letter-spacing: 0.5px;
     }
     
-    /* Category Colors CSS Classes (For Cards) */
+    /* CSS Classes for Category Colors on Cards */
     .cat-starting { background: #e0f2f1; color: #00695c; }
     .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
     .cat-selling { background: #fff3e0; color: #e65100; }
@@ -189,7 +189,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 5. UI LAYOUT ---
+# --- 5. DYNAMIC FILTER CSS ---
+# This block generates specific CSS rules for each filter button based on its order.
+# e.g. The 2nd button (Marketing) will turn Purple when selected.
+custom_pills_css = "<style>"
+category_names = list(CATEGORY_COLORS.keys())
+
+for i, cat_name in enumerate(category_names):
+    color = CATEGORY_COLORS[cat_name]
+    # nth-of-type(i+1) targets the specific button in the sequence
+    custom_pills_css += f"""
+    div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
+        background-color: {color} !important;
+        border-color: {color} !important;
+        color: white !important;
+    }}
+    """
+custom_pills_css += "</style>"
+st.markdown(custom_pills_css, unsafe_allow_html=True)
+
+
+# --- 6. UI LAYOUT ---
 
 # A. HERO SECTION
 with st.container():
@@ -202,7 +222,6 @@ with st.container():
     """, unsafe_allow_html=True)
 
     # B. SEARCH BAR (Sticking to top under header)
-    # Note: The CSS above pulls this input UP into the dark hero section (-3.5rem margin)
     user_query = st.text_input("", placeholder="Ask Vuka AI anything (e.g. 'How do I register my business?')", key="main_search")
 
     # Prompt Chips
@@ -233,43 +252,9 @@ with st.container():
 
 st.markdown("---")
 
-# --- 6. FILTERS (MULTI-SELECT PILLS) ---
+# --- 7. FILTERS ---
 
-categories = list(CATEGORY_COLORS.keys())
-selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
-
-# --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
-# This block dynamically creates CSS based on what you select
-if selected_categories:
-    css_injection = "<style>"
-    
-    # Unfortunately, Streamlit Pills doesn't give unique IDs per pill easily. 
-    # However, we can trick the CSS by using `aria-selected` combined with nth-child 
-    # OR simpler: Use the color of the LAST selected category for the highlight border,
-    # or loop through if possible.
-    # Since we can't target specific text inside a pill via pure CSS selectors easily without Javascript:
-    # We will apply a Dynamic Color rule: 
-    # If "Reaching Customers" is the *only* one selected -> Button becomes Purple.
-    # If "Operating Your Business" is the *only* one -> Button becomes Blue.
-    # If Multiple -> Default Yoco Blue.
-    
-    active_color = "#009fe3" # Default Blue
-    
-    if len(selected_categories) == 1:
-        # Get color for the single selected category
-        cat = selected_categories[0]
-        active_color = CATEGORY_COLORS.get(cat, "#009fe3")
-    
-    css_injection += f"""
-        div[data-testid="stPills"] button[aria-selected="true"] {{
-            background-color: {active_color} !important;
-            color: white !important;
-            border-color: {active_color} !important;
-        }}
-    """
-    css_injection += "</style>"
-    st.markdown(css_injection, unsafe_allow_html=True)
-
+selected_categories = st.pills("Filter insights:", category_names, selection_mode="multi")
 
 # Filter Logic
 if not selected_categories:
@@ -285,7 +270,7 @@ for row in rows:
     cols = st.columns(cols_per_row)
     for i, item in enumerate(row):
         
-        # Color Logic
+        # Color Logic for Cards
         cat_class = "cat-operating"
         for cat_name, _ in CATEGORY_COLORS.items():
             if item['category'] == cat_name:
