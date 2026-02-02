@@ -5,13 +5,12 @@ import os
 # --- 1. CONFIGURATION ---
 st.set_page_config(
     page_title="Yoco Vuka",
-    page_icon="⚡", # Vuka implies energy/waking up
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # --- 2. SETUP GEMINI AI ---
-# Gets key from Streamlit Cloud Secrets or local environment
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 # --- 3. DATA CONTENT ---
@@ -46,7 +45,6 @@ SUGGESTIONS = [
 ]
 
 # --- 4. CSS STYLING (YOCO BRANDING) ---
-# Yoco Blue: #009fe3 | Yoco Dark: #232d39 | Clean Sans-Serif Fonts
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -148,7 +146,7 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
     
-    /* Category Colors */
+    /* Category Colors - Matching Yoco/Modern Palette */
     .cat-starting { background: #e0f2f1; color: #00695c; }
     .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
     .cat-selling { background: #fff3e0; color: #e65100; }
@@ -214,19 +212,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # AI Chat Section
-# We use columns to center the chat input nicely
-c1, c2, c3 = st.columns([1, 2, 1])
+# FULL WIDTH (Removed columns c1, c2, c3 to fix redundancy)
+prompt = st.chat_input("Ask Vuka AI anything (e.g. 'How do I register my business?')")
 
-with c2:
-    prompt = st.chat_input("Ask Vuka AI anything (e.g. 'How do I register my business?')")
-    
-    # Prompt Chips (Static display for visual cue)
-    st.markdown(
-        "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:10px;'>Try asking: " 
-        + "  •  ".join([f"<i>{s}</i>" for s in SUGGESTIONS]) 
-        + "</div>", 
-        unsafe_allow_html=True
-    )
+# Prompt Chips
+st.markdown(
+    "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:10px;'>Try asking: " 
+    + "  •  ".join([f"<i>{s}</i>" for s in SUGGESTIONS]) 
+    + "</div>", 
+    unsafe_allow_html=True
+)
 
 if prompt:
     st.write("") # Spacer
@@ -236,7 +231,7 @@ if prompt:
         with st.container():
             st.markdown(f"**You:** {prompt}")
             
-            # AI Response Container with Yoco styling
+            # AI Response Container
             with st.chat_message("assistant", avatar="⚡"):
                 try:
                     genai.configure(api_key=api_key)
@@ -256,21 +251,21 @@ if prompt:
 
 st.markdown("---")
 
-# --- 6. FILTERS & GRID ---
+# --- 6. FILTERS (MULTI-SELECT PILLS) ---
 
-# Using a native selectbox for filtering to keep it mobile-friendly
-categories = ["All", "Starting Your Business", "Reaching Customers", "Selling Anywhere", 
+categories = ["Starting Your Business", "Reaching Customers", "Selling Anywhere", 
               "Managing Your Finances", "Operating Your Business", "Growing Your Team"]
 
-c_filter, c_spacer = st.columns([1, 3])
-with c_filter:
-    selected_category = st.selectbox("Filter insights by:", categories, index=0)
+# Use Streamlit Pills for colored buttons
+selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
 
-# Filter Data logic
-filtered_data = CONTENT_DATA if selected_category == "All" else [item for item in CONTENT_DATA if item["category"] == selected_category]
+# Filter Logic: If nothing selected, show ALL. Else show selected.
+if not selected_categories:
+    filtered_data = CONTENT_DATA
+else:
+    filtered_data = [item for item in CONTENT_DATA if item["category"] in selected_categories]
 
 # Render Grid
-# We calculate rows to ensure the grid wraps correctly
 cols_per_row = 3
 rows = [filtered_data[i:i + cols_per_row] for i in range(0, len(filtered_data), cols_per_row)]
 
