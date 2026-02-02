@@ -70,7 +70,7 @@ st.markdown("""
         --text-grey: #5c6c7f;
     }
     
-    /* RESET PADDING */
+    /* REMOVE DEFAULT PADDING */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 5rem;
@@ -112,7 +112,6 @@ st.markdown("""
     }
 
     /* CUSTOM SEARCH BAR */
-    /* Shifts text input up to overlap the hero section */
     div[data-testid="stTextInput"] {
         margin-top: -3.5rem; 
         max-width: 700px;
@@ -166,7 +165,7 @@ st.markdown("""
         display: inline-block; letter-spacing: 0.5px;
     }
     
-    /* CSS Classes for Category Colors on Cards */
+    /* Category Colors CSS Classes (For Cards) */
     .cat-starting { background: #e0f2f1; color: #00695c; }
     .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
     .cat-selling { background: #fff3e0; color: #e65100; }
@@ -189,27 +188,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 5. DYNAMIC FILTER CSS ---
-# This block generates specific CSS rules for each filter button based on its order.
-# e.g. The 2nd button (Marketing) will turn Purple when selected.
-custom_pills_css = "<style>"
-category_names = list(CATEGORY_COLORS.keys())
-
-for i, cat_name in enumerate(category_names):
-    color = CATEGORY_COLORS[cat_name]
-    # nth-of-type(i+1) targets the specific button in the sequence
-    custom_pills_css += f"""
-    div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
-        background-color: {color} !important;
-        border-color: {color} !important;
-        color: white !important;
-    }}
-    """
-custom_pills_css += "</style>"
-st.markdown(custom_pills_css, unsafe_allow_html=True)
-
-
-# --- 6. UI LAYOUT ---
+# --- 5. UI LAYOUT ---
 
 # A. HERO SECTION
 with st.container():
@@ -221,7 +200,7 @@ with st.container():
     </div>
     """, unsafe_allow_html=True)
 
-    # B. SEARCH BAR (Sticking to top under header)
+    # B. SEARCH BAR
     user_query = st.text_input("", placeholder="Ask Vuka AI anything (e.g. 'How do I register my business?')", key="main_search")
 
     # Prompt Chips
@@ -252,9 +231,31 @@ with st.container():
 
 st.markdown("---")
 
-# --- 7. FILTERS ---
+# --- 6. FILTERS (MULTI-SELECT PILLS) ---
 
-selected_categories = st.pills("Filter insights:", category_names, selection_mode="multi")
+categories = list(CATEGORY_COLORS.keys())
+selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
+
+# --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
+# This matches the button index to the specific category color
+custom_pills_css = "<style>"
+for i, cat_name in enumerate(categories):
+    color = CATEGORY_COLORS[cat_name]
+    # We use nth-of-type to target each specific button in order
+    custom_pills_css += f"""
+    div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
+        background-color: {color} !important;
+        border-color: {color} !important;
+        color: white !important;
+    }}
+    div[data-testid="stPills"] button:nth-of-type({i+1}):hover {{
+        border-color: {color} !important;
+        color: {color} !important;
+    }}
+    """
+custom_pills_css += "</style>"
+st.markdown(custom_pills_css, unsafe_allow_html=True)
+
 
 # Filter Logic
 if not selected_categories:
