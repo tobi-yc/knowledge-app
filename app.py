@@ -12,7 +12,6 @@ st.set_page_config(
 )
 
 # --- 2. SETUP GEMINI AI ---
-# Ensure you have set this in your .streamlit/secrets.toml file or environment variables
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 # --- 3. SESSION STATE INITIALIZATION ---
@@ -25,12 +24,12 @@ if 'ai_visible' not in st.session_state:
 
 # --- 4. DATA & COLORS ---
 CATEGORY_COLORS = {
-    "Starting Your Business": "#00695c",  # Teal
-    "Reaching Customers": "#7b1fa2",      # Purple
-    "Selling Anywhere": "#e65100",        # Orange
-    "Managing Your Finances": "#c62828",  # Red
-    "Operating Your Business": "#1565c0", # Blue
-    "Growing Your Team": "#33691e"        # Green
+    "Starting Your Business": "#00695c",
+    "Reaching Customers": "#7b1fa2",
+    "Selling Anywhere": "#e65100",
+    "Managing Your Finances": "#c62828",
+    "Operating Your Business": "#1565c0",
+    "Growing Your Team": "#33691e"
 }
 
 CONTENT_DATA = [
@@ -83,8 +82,7 @@ def run_search(query):
     try:
         genai.configure(api_key=api_key)
         
-        # --- MODEL UPDATE HERE ---
-        # Using the specific model requested
+        # --- MODEL DEFINITION ---
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
         system_prompt = (
@@ -103,7 +101,7 @@ def run_search(query):
 # --- 6. CSS STYLING ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Inter:wght@400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Inter:wght@400;600;700;900&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
@@ -122,33 +120,56 @@ st.markdown("""
         padding-bottom: 5rem;
     }
 
-    /* --- NEW HEADER STYLING --- */
+    /* --- HEADER STYLING --- */
     .yoco-header-container {
         /* Dark background: Necessary to see both Blue Logo and White Text */
         background-color: #0F172A; /* Deep Navy/Black */
-        padding: 2.5rem 2rem;
+        padding: 3rem 2rem;
         border-radius: 15px;
-        display: flex;
-        align-items: center;
-        gap: 25px; /* Spacing between Logo and Text */
         margin-bottom: 30px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column; /* Stack logo row and text row */
+        align-items: center;    /* Center everything horizontally */
+        text-align: center;
+    }
+
+    .logo-row {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        margin-bottom: 15px;
     }
 
     .yoco-logo-img {
-        height: 85px; /* Large Header Size */
+        height: 85px; 
         width: auto;
     }
 
     .vuka-text {
         font-family: 'Montserrat', sans-serif;
-        font-weight: 700; /* Bold */
-        font-size: 80px; /* Large Header Size */
-        color: #FFFFFF; /* White Text */
+        font-weight: 700; 
+        font-size: 80px; 
+        color: #FFFFFF; 
         letter-spacing: -1.5px;
         line-height: 1;
-        /* Minor adjustment to align text baseline with the logo */
         padding-top: 10px; 
+    }
+    
+    .tagline {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 2rem;
+        color: #FFFFFF;
+        margin-bottom: 0.5rem;
+    }
+    
+    .description {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        color: #94A3B8; /* Muted Slate Grey for description */
+        max-width: 600px;
+        line-height: 1.5;
     }
     
     /* PROMPT BUTTONS */
@@ -228,8 +249,12 @@ st.markdown("""
 logo_url = "https://files.buildwithfern.com/yoco.docs.buildwithfern.com/ccc94a27f557100203d0ba7856f74a66a6db873418e282ad02238632d2091e7c/pages/docs/logos/yoco.svg"
 header_html = f"""
 <div class="yoco-header-container">
-    <img src="{logo_url}" class="yoco-logo-img" alt="YOCO">
-    <span class="vuka-text">Vuka</span>
+    <div class="logo-row">
+        <img src="{logo_url}" class="yoco-logo-img" alt="YOCO">
+        <span class="vuka-text">Vuka</span>
+    </div>
+    <div class="tagline">Wake up to growth</div>
+    <div class="description">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
 </div>
 """
 st.markdown(header_html, unsafe_allow_html=True)
