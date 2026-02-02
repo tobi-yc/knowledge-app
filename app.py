@@ -46,11 +46,13 @@ CONTENT_DATA = [
     {"category": "Growing Your Team", "title": "Ready to Grow? Here's When You Should Hire Your First Employee", "summary": "Helps solopreneurs in beauty and fitness decide when to hire.", "source": "Sourcefin", "link": "https://www.sourcefin.co.za/ready-to-grow-your-small-business-heres-when-you-should-hire-your-first-employee/", "location": "South Africa", "type": "guide"}
 ]
 
-SUGGESTIONS = [
-    "How do I submit my VAT return?", 
-    "What are the latest food trends for 2026?", 
-    "How do I draft a basic employment contract?", 
-    "Low cost marketing ideas for SA"
+# Example Prompts
+EXAMPLE_PROMPTS = [
+    "How do I register for VAT?",
+    "Business funding options",
+    "Draft a simple contract",
+    "Marketing ideas on a budget",
+    "Food trends for 2026"
 ]
 
 # --- 4. CSS STYLING ---
@@ -78,7 +80,7 @@ st.markdown("""
     /* HERO SECTION */
     .hero-container {
         background-color: #232d39;
-        padding: 4rem 2rem 6rem 2rem; 
+        padding: 4rem 2rem 7rem 2rem; /* Increased bottom padding for search bar */
         text-align: center;
         border-radius: 0 0 24px 24px;
         margin: -6rem -4rem 0rem -4rem; 
@@ -130,6 +132,22 @@ st.markdown("""
     .stTextInput input:focus {
         border-color: #009fe3;
         box-shadow: 0 8px 30px rgba(0, 159, 227, 0.3);
+    }
+    
+    /* PROMPT BUTTONS */
+    .stButton button {
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background-color: white;
+        color: #5c6c7f;
+        border: 1px solid #eee;
+        padding: 0.25rem 1rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .stButton button:hover {
+        border-color: #009fe3;
+        color: #009fe3;
     }
 
     /* CARD STYLING */
@@ -189,6 +207,14 @@ st.markdown("""
 
 # --- 5. UI LAYOUT ---
 
+# Initialize Session State for Search
+if 'search_query' not in st.session_state:
+    st.session_state.search_query = ""
+
+# Function to handle button click
+def set_search(query):
+    st.session_state.search_query = query
+
 # A. HERO SECTION
 with st.container():
     st.markdown("""
@@ -200,29 +226,43 @@ with st.container():
     """, unsafe_allow_html=True)
 
     # B. SEARCH BAR
-    user_query = st.text_input("", placeholder="Ask Vuka AI anything (e.g. 'How do I register my business?')", key="main_search")
+    # Bound to session state key 'search_query'
+    user_query = st.text_input("", 
+                               placeholder="Ask Vuka AI anything...", 
+                               key="search_input", # Unique key for the widget
+                               value=st.session_state.search_query) 
 
-    # Prompt Chips
-    st.markdown(
-        "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:20px; margin-bottom: 30px;'>Try asking: " 
-        + "  •  ".join([f"<i>{s}</i>" for s in SUGGESTIONS]) 
-        + "</div>", 
-        unsafe_allow_html=True
-    )
+    # C. PROMPT BUTTONS (Clickable)
+    # Create columns to center them slightly or spread them
+    cols = st.columns([1, 1, 1, 1, 1])
+    
+    # We iterate and create a button for each prompt
+    for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
+        with cols[i]:
+            if st.button(prompt_text, use_container_width=True):
+                set_search(prompt_text)
+                st.rerun()
 
-    # AI Logic
-    if user_query:
+    # D. AI LOGIC
+    # Check if we have a query from either typing or button click
+    final_query = st.session_state.search_query if st.session_state.search_query else user_query
+    
+    # Update session state if user typed manually
+    if user_query != st.session_state.search_query:
+        st.session_state.search_query = user_query
+        final_query = user_query
+
+    if final_query:
         if not api_key:
             st.error("⚠️ Gemini API Key is missing.")
         else:
             with st.chat_message("assistant", avatar="⚡"):
                 try:
                     genai.configure(api_key=api_key)
-                    # UPDATED MODEL VERSION HERE
                     model = genai.GenerativeModel('models/gemini-2.5-flash')
                     system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
                                      "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
-                                     f"User question: {user_query}")
+                                     f"User question: {final_query}")
                     with st.spinner("Vuka is thinking..."):
                         response = model.generate_content(system_prompt)
                         st.write(response.text)
