@@ -76,10 +76,16 @@ def run_search(query):
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
+        # --- UPDATED PROMPT FOR PERPLEXITY-STYLE CITATIONS ---
         system_prompt = (
             "You are 'Phanda', a helpful business assistant for Yoco merchants in South Africa. "
-            "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
-            f"User question: {query}"
+            "1. Answer the user's question clearly and concisely. "
+            "2. STRICTLY relevant to South Africa (ZAR, SARS, local laws). "
+            "3. CITATIONS: You must include inline numbered citations in your text, like this: 'VAT registration is mandatory if turnover exceeds R1 million [1].' "
+            "4. SOURCES SECTION: At the very bottom of your response, add a section titled '### Sources'. "
+            "   - Format the list exactly like this: '1. [Title of Page](URL)' "
+            "   - Provide real, working URLs for official sources (SARS, Yoco, Dept of Labour, etc). "
+            f"\n\nUser question: {query}"
         )
         
         with st.spinner("Phanda is thinking..."):
