@@ -1,55 +1,336 @@
 import streamlit as st
+import google.generativeai as genai
+import os
 
-def render_header():
-    # URL for the Yoco logo
-    logo_url = "https://files.buildwithfern.com/yoco.docs.buildwithfern.com/ccc94a27f557100203d0ba7856f74a66a6db873418e282ad02238632d2091e7c/pages/docs/logos/yoco.svg"
+# --- 1. CONFIGURATION ---
+st.set_page_config(
+    page_title="Yoco Vuka",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# --- 2. SETUP GEMINI AI ---
+api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+# --- 3. DATA & COLORS ---
+CATEGORY_COLORS = {
+    "Starting Your Business": "#00695c",  # Teal
+    "Reaching Customers": "#7b1fa2",      # Purple
+    "Selling Anywhere": "#e65100",        # Orange
+    "Managing Your Finances": "#c62828",  # Red
+    "Operating Your Business": "#1565c0", # Blue
+    "Growing Your Team": "#33691e"        # Green
+}
+
+CONTENT_DATA = [
+    {"category": "Starting Your Business", "title": "12 Most Profitable Business Ideas in SA for 2026", "summary": "Highlights high-potential ideas like boutique fitness studios and artisanal coffee shops. Helps aspiring founders validate opportunities.", "source": "Lula", "link": "https://lula.co.za/blog/sme-advice/top-12-business-ideas-in-south-africa/", "location": "South Africa", "type": "article"},
+    {"category": "Starting Your Business", "title": "How to Start a Food Business in SA (7 Steps)", "summary": "A step-by-step guide covering concept definition, business registration, and food safety compliance.", "source": "ASC Consultants", "link": "https://ascconsultants.co.za/how-to-start-a-food-business-in-south-africa/", "location": "South Africa", "type": "guide"},
+    {"category": "Starting Your Business", "title": "A Guide to Small Business Management (South Africa)", "summary": "Structured introduction to planning, finance, HR, and operations. Doubles as a checklist for new owners.", "source": "SME South Africa", "link": "https://smesouthafrica.co.za/a-guide-to-small-business-management/", "location": "South Africa", "type": "guide"},
+    {"category": "Reaching Customers", "title": "How to Market Your Business Online in SA (10 Ways)", "summary": "Ten practical digital tactics from SEO to Google My Business tailored for SA. Ideal for merchants with no online strategy.", "source": "HostAfrica", "link": "https://hostafrica.co.za/blog/marketing/market-business-online-south-africa/", "location": "South Africa", "type": "guide"},
+    {"category": "Reaching Customers", "title": "Small Business Marketing in 2026: The Ultimate Guide", "summary": "Global playbook on building marketing funnels and prioritizing digital channels like mobile and social.", "source": "Forbes Advisor", "link": "https://www.forbes.com/advisor/business/small-business-marketing/", "location": "Global", "type": "guide"},
+    {"category": "Reaching Customers", "title": "7 Supermarket and Grocery Industry Trends 2026", "summary": "Explores trends like social commerce and loyalty programs. Includes actionable steps like using WhatsApp for promotions.", "source": "Gofrugal", "link": "https://www.gofrugal.com/blog/grocery-industry-trends/", "location": "Global", "type": "article"},
+    {"category": "Selling Anywhere", "title": "Omnichannel Shopping Is the Future of Retail in SA", "summary": "Explains how to combine online and in-store channels to improve convenience. Ideal for fashion and food merchants.", "source": "IT News Africa", "link": "https://www.itnewsafrica.com/2025/04/omnichannel-shopping-is-the-future-of-retail-in-south-africa/", "location": "South Africa", "type": "article"},
+    {"category": "Selling Anywhere", "title": "Trends Shaping SA's Food Retail and Wholesale Sector", "summary": "Insights on consumer behavior and retail competition. Helps SMBs differentiate through value and localization.", "source": "Sabinet", "link": "https://sabinet.co.za/trends-shaping-south-africas-food-retail-and-wholesale-sector/", "location": "South Africa", "type": "article"},
+    {"category": "Selling Anywhere", "title": "8 Fastest-Growing Small Businesses in Food & Beverage", "summary": "Presents growing niches like online catering and urban microfarms. Adaptable ideas for SA entrepreneurs.", "source": "Stacker", "link": "https://walterborolive.com/premium/stacker/stories/the-8-fastest-growing-small-businesses-in-food-restaurants-and-beverages-for-2026", "location": "Global", "type": "article"},
+    {"category": "Managing Your Finances", "title": "Structuring Your Finances for an SME in South Africa", "summary": "Basics on separating finances, bookkeeping, and tax planning. Valuable for first-time entrepreneurs.", "source": "M&J Group", "link": "https://mjgroup.africa/structuring-your-finances-for-an-sme-in-south-africa/", "location": "South Africa", "type": "guide"},
+    {"category": "Managing Your Finances", "title": "SADC Strategy on Financial Inclusion and SME Finance", "summary": "Outlines barriers and solutions for SME finance in Southern Africa. Useful context for grants or development finance.", "source": "FinMark Trust", "link": "https://finmark.org.za/Publications/SADC_Strategy_on_Financial_Inclusion_and_SME_Access_to_Finance_2023_2028.pdf", "location": "Africa", "type": "update"},
+    {"category": "Managing Your Finances", "title": "2025 Business Year in Review: Survival and Resilience", "summary": "Reviews how SA SMEs navigated cost pressures in 2025. Helps owners plan financially for 2026.", "source": "Vutivi Business News", "link": "https://vutivibusiness.co.za/business/2025-business-year-in-review-survival-strain-and-sme-resilience/", "location": "South Africa", "type": "article"},
+    {"category": "Operating Your Business", "title": "Small Businesses Anticipate Steady Economic Gains 2026", "summary": "Commentary on inflation and interest rates for 2026. Timely for merchants planning inventory and financing.", "source": "Vutivi Business News", "link": "https://vutivibusiness.co.za/business/small-businesses-anticipate-steady-economic-gains-in-2026/", "location": "South Africa", "type": "news"},
+    {"category": "Operating Your Business", "title": "SME December Outlook: Festive Season Time to Shine", "summary": "Advice for retail and hospitality on stock and staffing during peaks. Useful template for planning high-demand months.", "source": "The Citizen", "link": "https://www.citizen.co.za/business/sme-december-outlook-festive-season-time-for-small-businesses-to-shine/", "location": "South Africa", "type": "news"},
+    {"category": "Operating Your Business", "title": "4 Ways to Thrive as a SA Hospitality SME in Winter", "summary": "Practical tactics for guesthouses to boost occupancy in off-peak months. Relevant for hospitality seasonality.", "source": "Bizcommunity", "link": "https://www.bizcommunity.com/article/4-ways-to-thrive-as-a-sa-hospitality-sme-in-winter-473909a", "location": "South Africa", "type": "article"},
+    {"category": "Operating Your Business", "title": "What's Next for Local Small Businesses in 2026?", "summary": "Discusses operational adjustments needed to survive based on the Small Business Growth Index.", "source": "Logistics News", "link": "https://www.logisticsnews.co.za/Articles/what-s-next-for-local-small-businesses-in-2026", "location": "South Africa", "type": "article"},
+    {"category": "Growing Your Team", "title": "Staffing Strategies for Small Businesses (eGuide)", "summary": "How to plan staff levels, recruit, and onboard. Helps owners align staffing with cash flow.", "source": "Measured Ability", "link": "https://measuredability.com/small-business-staffing-strategies/", "location": "Global", "type": "guide"},
+    {"category": "Growing Your Team", "title": "Essential Tips for Growing Your Small Hospitality Business", "summary": "Focuses on concrete steps to grow bookings and profits while recognizing the emotional side of running guesthouses.", "source": "IOL", "link": "https://iol.co.za/dailynews/opinion/2025-06-18-essential-tips-for-growing-your-small-hospitality-business-in-south-africa/", "location": "South Africa", "type": "article"},
+    {"category": "Growing Your Team", "title": "How to Grow Your Hospitality Business in South Africa", "summary": "Actionable ideas like mobile-optimized websites and sustainability. Ideal for lodges wanting to stand out.", "source": "SME South Africa", "link": "https://smesouthafrica.co.za/how-to-grow-your-hospitality-business-in-south-africa/", "location": "South Africa", "type": "guide"},
+    {"category": "Growing Your Team", "title": "Ready to Grow? Here's When You Should Hire Your First Employee", "summary": "Helps solopreneurs in beauty and fitness decide when to hire.", "source": "Sourcefin", "link": "https://www.sourcefin.co.za/ready-to-grow-your-small-business-heres-when-you-should-hire-your-first-employee/", "location": "South Africa", "type": "guide"}
+]
+
+# Example Prompts
+EXAMPLE_PROMPTS = [
+    "How do I register for VAT?",
+    "Business funding options",
+    "Draft a simple contract",
+    "Marketing ideas on a budget",
+    "Food trends for 2026"
+]
+
+# --- 4. CSS STYLING ---
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* COLORS */
+    :root {
+        --yoco-blue: #009fe3;
+        --yoco-dark: #232d39;
+        --text-grey: #5c6c7f;
+    }
     
-    # Custom HTML/CSS for the lockup
-    header_html = f"""
-    <style>
-        /* Import Montserrat for the 'Vuka' text to match brand style */
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+    /* REMOVE DEFAULT PADDING */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 5rem;
+    }
+    
+    /* HERO SECTION */
+    .hero-container {
+        background-color: #232d39;
+        padding: 4rem 2rem 7rem 2rem; /* Increased bottom padding for search bar */
+        text-align: center;
+        border-radius: 0 0 24px 24px;
+        margin: -6rem -4rem 0rem -4rem; 
+        color: white;
+    }
+    
+    .hero-brand {
+        font-weight: 900;
+        font-size: 1.2rem;
+        text-transform: lowercase;
+        color: #009fe3;
+        letter-spacing: -1px;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        letter-spacing: -1px;
+    }
+    
+    .hero-sub {
+        opacity: 0.85;
+        max-width: 600px;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        font-weight: 400;
+        line-height: 1.6;
+    }
 
-        .header-container {{
-            /* Yoco Blue background - ensures white text is visible */
-            background-color: #00A9E0; 
-            padding: 1.5rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }}
+    /* CUSTOM SEARCH BAR */
+    div[data-testid="stTextInput"] {
+        margin-top: -3.5rem; 
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 999;
+    }
 
-        .yoco-logo {{
-            height: 40px;
-            width: auto;
-        }}
+    .stTextInput input {
+        border-radius: 50px;
+        padding: 15px 25px;
+        border: 1px solid transparent;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        font-size: 1rem;
+    }
+    .stTextInput input:focus {
+        border-color: #009fe3;
+        box-shadow: 0 8px 30px rgba(0, 159, 227, 0.3);
+    }
+    
+    /* PROMPT BUTTONS */
+    .stButton button {
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background-color: white;
+        color: #5c6c7f;
+        border: 1px solid #eee;
+        padding: 0.25rem 1rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .stButton button:hover {
+        border-color: #009fe3;
+        color: #009fe3;
+    }
 
-        .vuka-text {{
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 32px;
-            color: #FFFFFF;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            /* Fix vertical alignment visually */
-            line-height: 1; 
-            margin-top: 4px; 
-        }}
-    </style>
+    /* CARD STYLING */
+    div[data-testid="stColumn"] {
+        background-color: white;
+        border: 1px solid #eef0f2;
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    div[data-testid="stColumn"]:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15);
+        border-color: #009fe3;
+    }
 
-    <div class="header-container">
-        <img src="{logo_url}" class="yoco-logo" alt="Yoco Logo">
-        <span class="vuka-text">Vuka</span>
+    /* PILLS & TAGS */
+    .type-pill {
+        font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        padding: 6px 10px; border-radius: 6px; background: #f4f6f8; color: #5c6c7f;
+        letter-spacing: 0.5px; display: inline-block; margin-bottom: 12px;
+    }
+    
+    .category-pill {
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        padding: 6px 12px; border-radius: 20px;
+        margin-top: auto; margin-bottom: 16px;
+        display: inline-block; letter-spacing: 0.5px;
+    }
+    
+    /* Category Colors CSS Classes (For Cards) */
+    .cat-starting { background: #e0f2f1; color: #00695c; }
+    .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
+    .cat-selling { background: #fff3e0; color: #e65100; }
+    .cat-finances { background: #ffebee; color: #c62828; }
+    .cat-operating { background: #e3f2fd; color: #1565c0; }
+    .cat-team { background: #f1f8e9; color: #33691e; }
+    
+    /* TEXT */
+    h3 { font-size: 1.15rem; font-weight: 700; color: #232d39; margin: 0 0 10px 0; line-height: 1.3; min-height: 3.9em; }
+    p { font-size: 0.95rem; color: #5c6c7f; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
+    .source-text { font-size: 0.8rem; color: #999; border-top: 1px solid #f4f6f8; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+    a { text-decoration: none; color: #009fe3; font-weight: 700; font-size: 0.85rem; transition: color 0.2s; }
+    a:hover { color: #007bb0; }
+
+    /* HIDE ELEMENTS */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
+</style>
+""", unsafe_allow_html=True)
+
+# --- 5. UI LAYOUT ---
+
+# Initialize Session State for Search
+if 'search_query' not in st.session_state:
+    st.session_state.search_query = ""
+
+# Function to handle button click
+def set_search(query):
+    st.session_state.search_query = query
+
+# A. HERO SECTION
+with st.container():
+    st.markdown("""
+    <div class="hero-container">
+        <div class="hero-brand">yoco vuka</div>
+        <div class="hero-title">Wake up to growth</div>
+        <div class="hero-sub">Daily insights, guides, and tools for South African entrepreneurs ready to scale.</div>
     </div>
+    """, unsafe_allow_html=True)
+
+    # B. SEARCH BAR
+    # Bound to session state key 'search_query'
+    user_query = st.text_input("", 
+                               placeholder="Ask Vuka AI anything...", 
+                               key="search_input", # Unique key for the widget
+                               value=st.session_state.search_query) 
+
+    # C. PROMPT BUTTONS (Clickable)
+    # Create columns to center them slightly or spread them
+    cols = st.columns([1, 1, 1, 1, 1])
+    
+    # We iterate and create a button for each prompt
+    for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
+        with cols[i]:
+            if st.button(prompt_text, use_container_width=True):
+                set_search(prompt_text)
+                st.rerun()
+
+    # D. AI LOGIC
+    # Check if we have a query from either typing or button click
+    final_query = st.session_state.search_query if st.session_state.search_query else user_query
+    
+    # Update session state if user typed manually
+    if user_query != st.session_state.search_query:
+        st.session_state.search_query = user_query
+        final_query = user_query
+
+    if final_query:
+        if not api_key:
+            st.error("⚠️ Gemini API Key is missing.")
+        else:
+            with st.chat_message("assistant", avatar="⚡"):
+                try:
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel('models/gemini-2.5-flash')
+                    system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
+                                     "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
+                                     f"User question: {final_query}")
+                    with st.spinner("Vuka is thinking..."):
+                        response = model.generate_content(system_prompt)
+                        st.write(response.text)
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+
+st.markdown("---")
+
+# --- 6. FILTERS (MULTI-SELECT PILLS) ---
+
+categories = list(CATEGORY_COLORS.keys())
+selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
+
+# --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
+custom_pills_css = "<style>"
+for i, cat_name in enumerate(categories):
+    color = CATEGORY_COLORS[cat_name]
+    custom_pills_css += f"""
+    div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
+        background-color: {color} !important;
+        border-color: {color} !important;
+        color: white !important;
+    }}
+    div[data-testid="stPills"] button:nth-of-type({i+1}):hover {{
+        border-color: {color} !important;
+        color: {color} !important;
+    }}
     """
+custom_pills_css += "</style>"
+st.markdown(custom_pills_css, unsafe_allow_html=True)
 
-    # Render the HTML
-    st.markdown(header_html, unsafe_allow_html=True)
 
-# --- Your App Code Below ---
-render_header()
+# Filter Logic
+if not selected_categories:
+    filtered_data = CONTENT_DATA
+else:
+    filtered_data = [item for item in CONTENT_DATA if item["category"] in selected_categories]
 
-st.title("Workspace Dashboard")
-st.write("Welcome to the Yoco Vuka workspace.")
+# Render Grid
+cols_per_row = 3
+rows = [filtered_data[i:i + cols_per_row] for i in range(0, len(filtered_data), cols_per_row)]
+
+for row in rows:
+    cols = st.columns(cols_per_row)
+    for i, item in enumerate(row):
+        
+        # Color Logic for Cards
+        cat_class = "cat-operating"
+        for cat_name, _ in CATEGORY_COLORS.items():
+            if item['category'] == cat_name:
+                if "Starting" in cat_name: cat_class = "cat-starting"
+                elif "Reaching" in cat_name: cat_class = "cat-reaching"
+                elif "Selling" in cat_name: cat_class = "cat-selling"
+                elif "Finances" in cat_name: cat_class = "cat-finances"
+                elif "Operating" in cat_name: cat_class = "cat-operating"
+                elif "Growing" in cat_name: cat_class = "cat-team"
+        
+        with cols[i]:
+            st.markdown(f"""
+                <div style="height:100%;">
+                    <div class="type-pill">{item['type']}</div>
+                    <div style="font-size:0.7rem; float:right; color:#999;">📍 {item['location']}</div>
+                    <h3>{item['title']}</h3>
+                    <p>{item['summary']}</p>
+                    <div class="category-pill {cat_class}">{item['category']}</div>
+                    <div class="source-text">
+                        {item['source']} 
+                        <span style="float:right;"><a href="{item['link']}" target="_blank">Read ➜</a></span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
