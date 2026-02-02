@@ -14,15 +14,14 @@ st.set_page_config(
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 # --- 3. DATA & COLORS ---
-# We define colors here so we can use them in both CSS and Python logic
+# Hex codes matching your specific Yoco/Category palette
 CATEGORY_COLORS = {
     "Starting Your Business": "#00695c",  # Teal
     "Reaching Customers": "#7b1fa2",      # Purple
     "Selling Anywhere": "#e65100",        # Orange
     "Managing Your Finances": "#c62828",  # Red
     "Operating Your Business": "#1565c0", # Blue
-    "Growing Your Team": "#33691e",       # Green
-    "All": "#009fe3"                      # Yoco Blue (Default)
+    "Growing Your Team": "#33691e"        # Green
 }
 
 CONTENT_DATA = [
@@ -71,7 +70,7 @@ st.markdown("""
         --text-grey: #5c6c7f;
     }
     
-    /* RESET PADDING */
+    /* REMOVE PADDING */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 5rem;
@@ -80,10 +79,10 @@ st.markdown("""
     /* HERO SECTION */
     .hero-container {
         background-color: #232d39;
-        padding: 4rem 2rem 2rem 2rem; /* Reduced bottom padding */
+        padding: 4rem 2rem 6rem 2rem; /* Added bottom padding to overlap search */
         text-align: center;
         border-radius: 0 0 24px 24px;
-        margin: -6rem -4rem 2rem -4rem; /* Negative margins to fill top */
+        margin: -6rem -4rem 0rem -4rem; 
         color: white;
     }
     
@@ -106,22 +105,33 @@ st.markdown("""
     .hero-sub {
         opacity: 0.85;
         max-width: 600px;
-        margin: 0 auto 30px auto;
+        margin: 0 auto;
         font-size: 1.1rem;
         font-weight: 400;
         line-height: 1.6;
     }
 
-    /* CUSTOM INPUT STYLING (To look like the Chat Bar) */
+    /* CUSTOM SEARCH BAR (Floating) */
+    /* Target the text input container to float it up into the hero */
+    div[data-testid="stTextInput"] {
+        margin-top: -3.5rem; /* Pulls it up into the hero section */
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 999;
+    }
+
     .stTextInput input {
         border-radius: 50px;
-        padding: 12px 20px;
+        padding: 15px 25px;
         border: 1px solid transparent;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        font-size: 1rem;
     }
     .stTextInput input:focus {
         border-color: #009fe3;
-        box-shadow: 0 4px 20px rgba(0, 159, 227, 0.4);
+        box-shadow: 0 8px 30px rgba(0, 159, 227, 0.3);
     }
 
     /* CARD STYLING */
@@ -136,40 +146,27 @@ st.markdown("""
         display: flex;
         flex-direction: column;
     }
-    
     div[data-testid="stColumn"]:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15); /* Yoco Blue Shadow */
+        box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15);
         border-color: #009fe3;
     }
 
     /* PILLS & TAGS */
     .type-pill {
-        font-size: 0.65rem; 
-        font-weight: 800; 
-        text-transform: uppercase;
-        padding: 6px 10px; 
-        border-radius: 6px; 
-        background: #f4f6f8; 
-        color: #5c6c7f;
-        letter-spacing: 0.5px;
-        display: inline-block;
-        margin-bottom: 12px;
+        font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        padding: 6px 10px; border-radius: 6px; background: #f4f6f8; color: #5c6c7f;
+        letter-spacing: 0.5px; display: inline-block; margin-bottom: 12px;
     }
     
     .category-pill {
-        font-size: 0.7rem; 
-        font-weight: 700; 
-        text-transform: uppercase;
-        padding: 6px 12px; 
-        border-radius: 20px;
-        margin-top: auto; /* Pushes to bottom */
-        margin-bottom: 16px;
-        display: inline-block;
-        letter-spacing: 0.5px;
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        padding: 6px 12px; border-radius: 20px;
+        margin-top: auto; margin-bottom: 16px;
+        display: inline-block; letter-spacing: 0.5px;
     }
     
-    /* Category Colors (CSS Classes) */
+    /* Category Colors CSS Classes (For Cards) */
     .cat-starting { background: #e0f2f1; color: #00695c; }
     .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
     .cat-selling { background: #fff3e0; color: #e65100; }
@@ -178,44 +175,13 @@ st.markdown("""
     .cat-team { background: #f1f8e9; color: #33691e; }
     
     /* TEXT */
-    h3 { 
-        font-size: 1.15rem; 
-        font-weight: 700; 
-        color: #232d39; 
-        margin: 0 0 10px 0; 
-        line-height: 1.3;
-        min-height: 3.9em; /* Aligns cards */
-    }
-    
-    p { 
-        font-size: 0.95rem; 
-        color: #5c6c7f; 
-        line-height: 1.6; 
-        margin-bottom: 20px;
-        flex-grow: 1;
-    }
-    
-    .source-text { 
-        font-size: 0.8rem; 
-        color: #999; 
-        border-top: 1px solid #f4f6f8;
-        padding-top: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    a { 
-        text-decoration: none; 
-        color: #009fe3; 
-        font-weight: 700; 
-        font-size: 0.85rem; 
-        transition: color 0.2s;
-    }
-    
+    h3 { font-size: 1.15rem; font-weight: 700; color: #232d39; margin: 0 0 10px 0; line-height: 1.3; min-height: 3.9em; }
+    p { font-size: 0.95rem; color: #5c6c7f; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
+    .source-text { font-size: 0.8rem; color: #999; border-top: 1px solid #f4f6f8; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+    a { text-decoration: none; color: #009fe3; font-weight: 700; font-size: 0.85rem; transition: color 0.2s; }
     a:hover { color: #007bb0; }
 
-    /* HIDE STREAMLIT ELEMENTS */
+    /* HIDE ELEMENTS */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -225,8 +191,7 @@ st.markdown("""
 
 # --- 5. UI LAYOUT ---
 
-# A. HERO SECTION with Text Input
-# We use st.container to group the hero content
+# A. HERO SECTION
 with st.container():
     st.markdown("""
     <div class="hero-container">
@@ -236,85 +201,77 @@ with st.container():
     </div>
     """, unsafe_allow_html=True)
 
-    # Search Bar (Using text_input instead of chat_input to control placement)
-    # We move the margin up negatively via CSS to pull it into the Hero box visually if needed, 
-    # but here we just place it directly after the Hero HTML.
-    
+    # B. SEARCH BAR (Sticking to top under header)
+    # Note: The CSS above pulls this input UP into the dark hero section (-3.5rem margin)
     user_query = st.text_input("", placeholder="Ask Vuka AI anything (e.g. 'How do I register my business?')", key="main_search")
 
     # Prompt Chips
     st.markdown(
-        "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:10px; margin-bottom: 30px;'>Try asking: " 
+        "<div style='text-align:center; color:#999; font-size:0.8rem; margin-top:20px; margin-bottom: 30px;'>Try asking: " 
         + "  •  ".join([f"<i>{s}</i>" for s in SUGGESTIONS]) 
         + "</div>", 
         unsafe_allow_html=True
     )
 
-    # AI Logic Handling
+    # AI Logic
     if user_query:
         if not api_key:
-            st.error("⚠️ Gemini API Key is missing. Add it to Streamlit Secrets.")
+            st.error("⚠️ Gemini API Key is missing.")
         else:
             with st.chat_message("assistant", avatar="⚡"):
                 try:
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel('gemini-1.5-flash')
-                    
-                    system_prompt = (
-                        "You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
-                        "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
-                        f"User question: {user_query}"
-                    )
-                    
+                    system_prompt = ("You are 'Vuka', a helpful business assistant for Yoco merchants in South Africa. "
+                                     "Keep answers concise, practical, and strictly relevant to the SA market (ZAR currency, SARS tax laws, etc). "
+                                     f"User question: {user_query}")
                     with st.spinner("Vuka is thinking..."):
                         response = model.generate_content(system_prompt)
                         st.write(response.text)
                 except Exception as e:
-                    st.error(f"Connection Error: {str(e)}")
+                    st.error(f"Error: {str(e)}")
 
 st.markdown("---")
 
 # --- 6. FILTERS (MULTI-SELECT PILLS) ---
 
-categories = ["Starting Your Business", "Reaching Customers", "Selling Anywhere", 
-              "Managing Your Finances", "Operating Your Business", "Growing Your Team"]
-
-# Render Pills
+categories = list(CATEGORY_COLORS.keys())
 selected_categories = st.pills("Filter insights:", categories, selection_mode="multi")
 
 # --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
-# This block runs every time the script reruns (which happens on selection)
+# This block dynamically creates CSS based on what you select
 if selected_categories:
-    css_styles = []
-    # Streamlit's pills don't have unique IDs per option easily, 
-    # but we can rely on the fact that 'active' state + 'inner text' combination.
-    # However, simpler is to just color ALL selected pills the Yoco Blue 
-    # OR try to map them. 
+    css_injection = "<style>"
     
-    # Since specific targeting of Pill[i] is hard in pure CSS without hacks,
-    # We will use the Yoco Blue for uniformity, OR apply specific logic if just one is selected.
+    # Unfortunately, Streamlit Pills doesn't give unique IDs per pill easily. 
+    # However, we can trick the CSS by using `aria-selected` combined with nth-child 
+    # OR simpler: Use the color of the LAST selected category for the highlight border,
+    # or loop through if possible.
+    # Since we can't target specific text inside a pill via pure CSS selectors easily without Javascript:
+    # We will apply a Dynamic Color rule: 
+    # If "Reaching Customers" is the *only* one selected -> Button becomes Purple.
+    # If "Operating Your Business" is the *only* one -> Button becomes Blue.
+    # If Multiple -> Default Yoco Blue.
     
-    # Let's check which color to use. If multiple, we might default to Blue.
-    # If single, we match the category color.
+    active_color = "#009fe3" # Default Blue
     
-    active_color = "#009fe3" # Default Yoco Blue
     if len(selected_categories) == 1:
-        active_color = CATEGORY_COLORS.get(selected_categories[0], "#009fe3")
-        
-    # Inject CSS to override the selected pill color
-    st.markdown(f"""
-    <style>
-        /* Target the active pill in the specific st.pills widget */
+        # Get color for the single selected category
+        cat = selected_categories[0]
+        active_color = CATEGORY_COLORS.get(cat, "#009fe3")
+    
+    css_injection += f"""
         div[data-testid="stPills"] button[aria-selected="true"] {{
             background-color: {active_color} !important;
             color: white !important;
             border-color: {active_color} !important;
         }}
-    </style>
-    """, unsafe_allow_html=True)
+    """
+    css_injection += "</style>"
+    st.markdown(css_injection, unsafe_allow_html=True)
 
 
-# Filter Data Logic
+# Filter Logic
 if not selected_categories:
     filtered_data = CONTENT_DATA
 else:
@@ -329,11 +286,9 @@ for row in rows:
     for i, item in enumerate(row):
         
         # Color Logic
-        cat_class = "cat-operating" # Default
-        for cat_name, color_hex in CATEGORY_COLORS.items():
+        cat_class = "cat-operating"
+        for cat_name, _ in CATEGORY_COLORS.items():
             if item['category'] == cat_name:
-                # We map the category name to our CSS class names
-                # Simplified mapping based on known keys
                 if "Starting" in cat_name: cat_class = "cat-starting"
                 elif "Reaching" in cat_name: cat_class = "cat-reaching"
                 elif "Selling" in cat_name: cat_class = "cat-selling"
@@ -341,7 +296,6 @@ for row in rows:
                 elif "Operating" in cat_name: cat_class = "cat-operating"
                 elif "Growing" in cat_name: cat_class = "cat-team"
         
-        # Card HTML
         with cols[i]:
             st.markdown(f"""
                 <div style="height:100%;">
