@@ -1,7 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
 import os
-import time
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(
@@ -55,7 +54,6 @@ CONTENT_DATA = [
     {"category": "Growing Your Team", "title": "Ready to Grow? Here's When You Should Hire Your First Employee", "summary": "Helps solopreneurs in beauty and fitness decide when to hire.", "source": "Sourcefin", "link": "https://www.sourcefin.co.za/ready-to-grow-your-small-business-heres-when-you-should-hire-your-first-employee/", "location": "South Africa", "type": "guide"}
 ]
 
-# Example Prompts
 EXAMPLE_PROMPTS = [
     "How do I register for VAT?",
     "Business funding options",
@@ -66,23 +64,16 @@ EXAMPLE_PROMPTS = [
 
 # --- 5. HELPER FUNCTIONS ---
 def run_search(query):
-    """
-    Sets the query state, makes the AI result visible, 
-    and simulates/runs the search.
-    """
+    """Executes the AI search and makes result visible."""
     st.session_state.search_query = query
     st.session_state.ai_visible = True
     
-    # Check API Key
     if not api_key:
-        st.session_state.ai_result = "⚠️ Please configure your Gemini API Key in .streamlit/secrets.toml"
+        st.session_state.ai_result = "⚠️ Please configure your Gemini API Key."
         return
 
-    # Run Gemini Search
     try:
         genai.configure(api_key=api_key)
-        
-        # --- MODEL DEFINITION ---
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
         system_prompt = (
@@ -97,6 +88,24 @@ def run_search(query):
             
     except Exception as e:
         st.session_state.ai_result = f"Error communicating with AI: {str(e)}"
+
+# --- CALLBACKS (Crucial for button stability) ---
+
+def toggle_ai_visibility():
+    """Toggles the AI visibility state directly."""
+    st.session_state.ai_visible = not st.session_state.ai_visible
+
+def handle_search_submit():
+    """Handles text input changes safely."""
+    query = st.session_state.main_search_input
+    # Only run search if the query is different from what we already have
+    if query and query != st.session_state.search_query:
+        run_search(query)
+
+def on_filter_change():
+    """Hides AI result when filters change, but keeps the data ready."""
+    if st.session_state.ai_result:
+        st.session_state.ai_visible = False
 
 # --- 6. CSS STYLING ---
 st.markdown("""
@@ -114,113 +123,74 @@ st.markdown("""
         --text-grey: #5c6c7f;
     }
     
-    /* REMOVE DEFAULT PADDING */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 5rem;
     }
 
-    /* --- HEADER STYLING --- */
+    /* HEADER */
     .yoco-header-container {
-        /* Dark background: Necessary to see both Blue Logo and White Text */
-        background-color: #0F172A; /* Deep Navy/Black */
+        background-color: #0F172A;
         padding: 3rem 2rem;
         border-radius: 15px;
         margin-bottom: 30px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         display: flex;
-        flex-direction: column; /* Stack logo row and text row */
-        align-items: center;    /* Center everything horizontally */
+        flex-direction: column;
+        align-items: center;
         text-align: center;
     }
-
     .logo-row {
         display: flex;
         align-items: center;
         gap: 25px;
         margin-bottom: 15px;
     }
-
-    .yoco-logo-img {
-        height: 85px; 
-        width: auto;
-    }
-
+    .yoco-logo-img { height: 85px; width: auto; }
     .vuka-text {
         font-family: 'Montserrat', sans-serif;
-        font-weight: 700; 
-        font-size: 80px; 
-        color: #FFFFFF; 
-        letter-spacing: -1.5px;
-        line-height: 1;
-        padding-top: 10px; 
+        font-weight: 700; font-size: 80px; color: #FFFFFF;
+        letter-spacing: -1.5px; line-height: 1; padding-top: 10px;
     }
-    
     .tagline {
         font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        font-size: 2rem;
-        color: #FFFFFF;
-        margin-bottom: 0.5rem;
+        font-weight: 700; font-size: 2rem; color: #FFFFFF; margin-bottom: 0.5rem;
     }
-    
     .description {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.1rem;
-        color: #94A3B8; /* Muted Slate Grey for description */
-        max-width: 600px;
-        line-height: 1.5;
-    }
-    
-    /* PROMPT BUTTONS */
-    .stButton button {
-        border-radius: 20px;
-        font-size: 0.8rem;
-        background-color: white;
-        color: #5c6c7f;
-        border: 1px solid #eee;
-        padding: 0.25rem 1rem;
-        transition: all 0.2s;
-        width: 100%;
-    }
-    .stButton button:hover {
-        border-color: #009fe3;
-        color: #009fe3;
+        font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #94A3B8;
+        max-width: 600px; line-height: 1.5;
     }
 
-    /* CARD STYLING */
+    /* BUTTONS & CARDS */
+    .stButton button {
+        border-radius: 20px; font-size: 0.8rem; background-color: white;
+        color: #5c6c7f; border: 1px solid #eee; padding: 0.25rem 1rem; width: 100%;
+    }
+    .stButton button:hover { border-color: #009fe3; color: #009fe3; }
+    
     div[data-testid="stColumn"] {
-        background-color: white;
-        border: 1px solid #eef0f2;
-        border-radius: 12px;
-        padding: 24px;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+        background-color: white; border: 1px solid #eef0f2; border-radius: 12px;
+        padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        height: 100%; display: flex; flex-direction: column;
     }
     div[data-testid="stColumn"]:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15);
+        transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 159, 227, 0.15);
         border-color: #009fe3;
     }
 
-    /* PILLS & TAGS */
+    /* TAGS */
     .type-pill {
         font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
         padding: 6px 10px; border-radius: 6px; background: #f4f6f8; color: #5c6c7f;
         letter-spacing: 0.5px; display: inline-block; margin-bottom: 12px;
     }
-    
     .category-pill {
         font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-        padding: 6px 12px; border-radius: 20px;
-        margin-top: auto; margin-bottom: 16px;
+        padding: 6px 12px; border-radius: 20px; margin-top: auto; margin-bottom: 16px;
         display: inline-block; letter-spacing: 0.5px;
     }
     
-    /* Category Colors CSS Classes (For Cards) */
+    /* Category Colors */
     .cat-starting { background: #e0f2f1; color: #00695c; }
     .cat-reaching { background: #f3e5f5; color: #7b1fa2; }
     .cat-selling { background: #fff3e0; color: #e65100; }
@@ -229,17 +199,12 @@ st.markdown("""
     .cat-team { background: #f1f8e9; color: #33691e; }
     
     /* TEXT */
-    h3 { font-size: 1.15rem; font-weight: 700; color: #232d39; margin: 0 0 10px 0; line-height: 1.3; min-height: 3.9em; }
+    h3 { font-size: 1.15rem; font-weight: 700; color: #232d39; margin: 0 0 10px 0; min-height: 3.9em; }
     p { font-size: 0.95rem; color: #5c6c7f; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
     .source-text { font-size: 0.8rem; color: #999; border-top: 1px solid #f4f6f8; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
-    a { text-decoration: none; color: #009fe3; font-weight: 700; font-size: 0.85rem; transition: color 0.2s; }
-    a:hover { color: #007bb0; }
+    a { text-decoration: none; color: #009fe3; font-weight: 700; font-size: 0.85rem; }
 
-    /* HIDE ELEMENTS */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-
+    #MainMenu, footer, header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -260,21 +225,18 @@ header_html = f"""
 st.markdown(header_html, unsafe_allow_html=True)
 
 # B. SEARCH INPUT
-current_query = st.text_input("", 
-                              placeholder="Ask Vuka AI anything...", 
-                              key="main_search_input",
-                              value=st.session_state.search_query)
-
-# Check if the user typed something new and hit enter
-if current_query and current_query != st.session_state.search_query:
-    run_search(current_query)
-    st.rerun()
+# Using on_change callback to trigger search safely
+st.text_input("", 
+              placeholder="Ask Vuka AI anything...", 
+              key="main_search_input",
+              value=st.session_state.search_query,
+              on_change=handle_search_submit)
 
 # C. EXAMPLE PROMPTS
 cols = st.columns(len(EXAMPLE_PROMPTS))
 for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
     with cols[i]:
-        # Clicking a button runs the search
+        # Clicking a button runs the search via direct call and rerun
         if st.button(prompt_text, use_container_width=True):
             run_search(prompt_text)
             st.rerun()
@@ -283,7 +245,6 @@ for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
 if st.session_state.ai_result:
     st.markdown("---")
     
-    # Header for the result area with the Toggle Button
     col_res_1, col_res_2 = st.columns([5, 1])
     with col_res_1:
         if st.session_state.ai_visible:
@@ -292,13 +253,10 @@ if st.session_state.ai_result:
             st.caption(f"🤖 AI Insight (Hidden) for: **{st.session_state.search_query}**")
             
     with col_res_2:
-        # Hide/Show Toggle
+        # Toggle Button using on_click CALLBACK
         btn_label = "🙈 Hide" if st.session_state.ai_visible else "👁️ Show"
-        if st.button(btn_label, key="toggle_ai"):
-            st.session_state.ai_visible = not st.session_state.ai_visible
-            st.rerun()
+        st.button(btn_label, key="toggle_ai_btn", on_click=toggle_ai_visibility)
 
-    # Conditionally display the result
     if st.session_state.ai_visible:
         with st.chat_message("assistant", avatar="⚡"):
             st.write(st.session_state.ai_result)
@@ -309,11 +267,7 @@ st.markdown("---")
 
 categories = list(CATEGORY_COLORS.keys())
 
-def on_filter_change():
-    # If a filter is clicked, hide the AI result to reduce clutter
-    if st.session_state.ai_result:
-        st.session_state.ai_visible = False
-
+# Filters using on_change CALLBACK
 selected_categories = st.pills(
     "Filter insights:", 
     categories, 
@@ -322,19 +276,16 @@ selected_categories = st.pills(
     on_change=on_filter_change
 )
 
-# --- DYNAMIC CSS INJECTION FOR ACTIVE FILTER COLORS ---
+# --- DYNAMIC CSS FOR FILTERS ---
 custom_pills_css = "<style>"
 for i, cat_name in enumerate(categories):
     color = CATEGORY_COLORS[cat_name]
     custom_pills_css += f"""
     div[data-testid="stPills"] button:nth-of-type({i+1})[aria-selected="true"] {{
-        background-color: {color} !important;
-        border-color: {color} !important;
-        color: white !important;
+        background-color: {color} !important; border-color: {color} !important; color: white !important;
     }}
     div[data-testid="stPills"] button:nth-of-type({i+1}):hover {{
-        border-color: {color} !important;
-        color: {color} !important;
+        border-color: {color} !important; color: {color} !important;
     }}
     """
 custom_pills_css += "</style>"
@@ -354,7 +305,7 @@ for row in rows:
     cols = st.columns(cols_per_row)
     for i, item in enumerate(row):
         
-        # Color Logic for Cards
+        # Color Logic
         cat_class = "cat-operating"
         for cat_name, _ in CATEGORY_COLORS.items():
             if item['category'] == cat_name:
