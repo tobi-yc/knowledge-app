@@ -22,35 +22,36 @@ if 'ai_visible' not in st.session_state:
     st.session_state.ai_visible = False
 
 # --- 4. DATA & COLORS ---
+# Added "Regulatory Updates" with a distinct Slate Blue color
 CATEGORY_COLORS = {
     "Starting Your Business": "#00695c",
     "Reaching Customers": "#7b1fa2",
     "Selling Anywhere": "#e65100",
     "Managing Your Finances": "#c62828",
     "Operating Your Business": "#1565c0",
-    "Growing Your Team": "#33691e"
+    "Growing Your Team": "#33691e",
+    "Regulatory Updates": "#455a64" # NEW: Slate Grey/Blue
 }
 
 CONTENT_DATA = [
+    # --- NEW REGULATORY CONTENT ---
+    {"category": "Regulatory Updates", "title": "SARS Announces Real-Time VAT Reporting Plans for 2027", "summary": "SARS is moving towards real-time digital VAT reporting. Understand the timeline and what software upgrades might be required.", "source": "SARS", "link": "https://www.sars.gov.za", "location": "South Africa", "type": "official notice"},
+    {"category": "Regulatory Updates", "title": "New Employment Equity Targets: Sector Guide", "summary": "Department of Employment and Labour has gazetted new sectoral targets. Check if your small business falls under the designated employer scope.", "source": "Dept of Labour", "link": "https://www.labour.gov.za", "location": "South Africa", "type": "legislation"},
+    
+    # --- YOCO OFFICIAL GUIDES ---
+    {"category": "Reaching Customers", "title": "Learn how to use Instagram for your business", "summary": "A guide on switching to a business profile, optimizing bios, showcasing products, and using Reels to drive engagement.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/instagram-for-your-business/", "location": "South Africa", "type": "guide"},
+    {"category": "Operating Your Business", "title": "How to choose a point of sale (POS) system", "summary": "Key questions and features to look for when selecting a POS, covering cloud vs. traditional systems and integration needs.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/choose-point-of-sale/", "location": "South Africa", "type": "guide"},
+    {"category": "Starting Your Business", "title": "Behind the Counter with Sparkys: 5 takeaways for success", "summary": "Lessons from the Sparkys burger brand on starting small, maintaining quality, and choosing the right tech for efficiency.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/yoco-meets-sparkys/", "location": "South Africa", "type": "case study"},
+    {"category": "Managing Your Finances", "title": "Yoco shapes Mzansi's gratitude culture: R1 billion in tips", "summary": "How digital tipping prompts have unlocked over R1 billion in tips for service workers, boosting staff morale and income.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/yoco-shapes-gratitude-culture/", "location": "South Africa", "type": "article"},
+    {"category": "Selling Anywhere", "title": "Inside Yoco Counter: Your top questions answered", "summary": "A breakdown of the Yoco Counter features, payment acceptance, stock management, and cash flow tools.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/articles/inside-yoco-counter", "location": "South Africa", "type": "guide"},
+
+    # --- EXTERNAL RESOURCES ---
     {"category": "Starting Your Business", "title": "12 Most Profitable Business Ideas in SA for 2026", "summary": "Highlights high-potential ideas like boutique fitness studios and artisanal coffee shops. Helps aspiring founders validate opportunities.", "source": "Lula", "link": "https://lula.co.za/blog/sme-advice/top-12-business-ideas-in-south-africa/", "location": "South Africa", "type": "article"},
     {"category": "Starting Your Business", "title": "How to Start a Food Business in SA (7 Steps)", "summary": "A step-by-step guide covering concept definition, business registration, and food safety compliance.", "source": "ASC Consultants", "link": "https://ascconsultants.co.za/how-to-start-a-food-business-in-south-africa/", "location": "South Africa", "type": "guide"},
-    {"category": "Starting Your Business", "title": "A Guide to Small Business Management (South Africa)", "summary": "Structured introduction to planning, finance, HR, and operations. Doubles as a checklist for new owners.", "source": "SME South Africa", "link": "https://smesouthafrica.co.za/a-guide-to-small-business-management/", "location": "South Africa", "type": "guide"},
-    {"category": "Reaching Customers", "title": "How to Market Your Business Online in SA (10 Ways)", "summary": "Ten practical digital tactics from SEO to Google My Business tailored for SA. Ideal for merchants with no online strategy.", "source": "HostAfrica", "link": "https://hostafrica.co.za/blog/marketing/market-business-online-south-africa/", "location": "South Africa", "type": "guide"},
     {"category": "Reaching Customers", "title": "Small Business Marketing in 2026: The Ultimate Guide", "summary": "Global playbook on building marketing funnels and prioritizing digital channels like mobile and social.", "source": "Forbes Advisor", "link": "https://www.forbes.com/advisor/business/small-business-marketing/", "location": "Global", "type": "guide"},
-    {"category": "Reaching Customers", "title": "7 Supermarket and Grocery Industry Trends 2026", "summary": "Explores trends like social commerce and loyalty programs. Includes actionable steps like using WhatsApp for promotions.", "source": "Gofrugal", "link": "https://www.gofrugal.com/blog/grocery-industry-trends/", "location": "Global", "type": "article"},
     {"category": "Selling Anywhere", "title": "Omnichannel Shopping Is the Future of Retail in SA", "summary": "Explains how to combine online and in-store channels to improve convenience. Ideal for fashion and food merchants.", "source": "IT News Africa", "link": "https://www.itnewsafrica.com/2025/04/omnichannel-shopping-is-the-future-of-retail-in-south-africa/", "location": "South Africa", "type": "article"},
-    {"category": "Selling Anywhere", "title": "Trends Shaping SA's Food Retail and Wholesale Sector", "summary": "Insights on consumer behavior and retail competition. Helps SMBs differentiate through value and localization.", "source": "Sabinet", "link": "https://sabinet.co.za/trends-shaping-south-africas-food-retail-and-wholesale-sector/", "location": "South Africa", "type": "article"},
-    {"category": "Selling Anywhere", "title": "8 Fastest-Growing Small Businesses in Food & Beverage", "summary": "Presents growing niches like online catering and urban microfarms. Adaptable ideas for SA entrepreneurs.", "source": "Stacker", "link": "https://walterborolive.com/premium/stacker/stories/the-8-fastest-growing-small-businesses-in-food-restaurants-and-beverages-for-2026", "location": "Global", "type": "article"},
     {"category": "Managing Your Finances", "title": "Structuring Your Finances for an SME in South Africa", "summary": "Basics on separating finances, bookkeeping, and tax planning. Valuable for first-time entrepreneurs.", "source": "M&J Group", "link": "https://mjgroup.africa/structuring-your-finances-for-an-sme-in-south-africa/", "location": "South Africa", "type": "guide"},
-    {"category": "Managing Your Finances", "title": "SADC Strategy on Financial Inclusion and SME Finance", "summary": "Outlines barriers and solutions for SME finance in Southern Africa. Useful context for grants or development finance.", "source": "FinMark Trust", "link": "https://finmark.org.za/Publications/SADC_Strategy_on_Financial_Inclusion_and_SME_Access_to_Finance_2023_2028.pdf", "location": "Africa", "type": "update"},
-    {"category": "Managing Your Finances", "title": "2025 Business Year in Review: Survival and Resilience", "summary": "Reviews how SA SMEs navigated cost pressures in 2025. Helps owners plan financially for 2026.", "source": "Vutivi Business News", "link": "https://vutivibusiness.co.za/business/2025-business-year-in-review-survival-strain-and-sme-resilience/", "location": "South Africa", "type": "article"},
-    {"category": "Operating Your Business", "title": "Small Businesses Anticipate Steady Economic Gains 2026", "summary": "Commentary on inflation and interest rates for 2026. Timely for merchants planning inventory and financing.", "source": "Vutivi Business News", "link": "https://vutivibusiness.co.za/business/small-businesses-anticipate-steady-economic-gains-in-2026/", "location": "South Africa", "type": "news"},
     {"category": "Operating Your Business", "title": "SME December Outlook: Festive Season Time to Shine", "summary": "Advice for retail and hospitality on stock and staffing during peaks. Useful template for planning high-demand months.", "source": "The Citizen", "link": "https://www.citizen.co.za/business/sme-december-outlook-festive-season-time-for-small-businesses-to-shine/", "location": "South Africa", "type": "news"},
-    {"category": "Operating Your Business", "title": "4 Ways to Thrive as a SA Hospitality SME in Winter", "summary": "Practical tactics for guesthouses to boost occupancy in off-peak months. Relevant for hospitality seasonality.", "source": "Bizcommunity", "link": "https://www.bizcommunity.com/article/4-ways-to-thrive-as-a-sa-hospitality-sme-in-winter-473909a", "location": "South Africa", "type": "article"},
-    {"category": "Operating Your Business", "title": "What's Next for Local Small Businesses in 2026?", "summary": "Discusses operational adjustments needed to survive based on the Small Business Growth Index.", "source": "Logistics News", "link": "https://www.logisticsnews.co.za/Articles/what-s-next-for-local-small-businesses-in-2026", "location": "South Africa", "type": "article"},
-    {"category": "Growing Your Team", "title": "Staffing Strategies for Small Businesses (eGuide)", "summary": "How to plan staff levels, recruit, and onboard. Helps owners align staffing with cash flow.", "source": "Measured Ability", "link": "https://measuredability.com/small-business-staffing-strategies/", "location": "Global", "type": "guide"},
-    {"category": "Growing Your Team", "title": "Essential Tips for Growing Your Small Hospitality Business", "summary": "Focuses on concrete steps to grow bookings and profits while recognizing the emotional side of running guesthouses.", "source": "IOL", "link": "https://iol.co.za/dailynews/opinion/2025-06-18-essential-tips-for-growing-your-small-hospitality-business-in-south-africa/", "location": "South Africa", "type": "article"},
-    {"category": "Growing Your Team", "title": "How to Grow Your Hospitality Business in South Africa", "summary": "Actionable ideas like mobile-optimized websites and sustainability. Ideal for lodges wanting to stand out.", "source": "SME South Africa", "link": "https://smesouthafrica.co.za/how-to-grow-your-hospitality-business-in-south-africa/", "location": "South Africa", "type": "guide"},
     {"category": "Growing Your Team", "title": "Ready to Grow? Here's When You Should Hire Your First Employee", "summary": "Helps solopreneurs in beauty and fitness decide when to hire.", "source": "Sourcefin", "link": "https://www.sourcefin.co.za/ready-to-grow-your-small-business-heres-when-you-should-hire-your-first-employee/", "location": "South Africa", "type": "guide"}
 ]
 
@@ -76,15 +77,14 @@ def run_search(query):
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
         
-        # --- UPDATED PROMPT FOR PERPLEXITY-STYLE CITATIONS ---
         system_prompt = (
             "You are 'Phanda', a helpful business assistant for Yoco merchants in South Africa. "
             "1. Answer the user's question clearly and concisely. "
             "2. STRICTLY relevant to South Africa (ZAR, SARS, local laws). "
-            "3. CITATIONS: You must include inline numbered citations in your text, like this: 'VAT registration is mandatory if turnover exceeds R1 million [1].' "
-            "4. SOURCES SECTION: At the very bottom of your response, add a section titled '### Sources'. "
-            "   - Format the list exactly like this: '1. [Title of Page](URL)' "
-            "   - Provide real, working URLs for official sources (SARS, Yoco, Dept of Labour, etc). "
+            "3. CITATIONS: You must include inline numbered citations in your text, like this: 'Turnover tax is available for micro-businesses [1].' "
+            "4. SOURCES SECTION: At the bottom, add a section '### Sources'. "
+            "   - Format: '1. [Title](URL)' "
+            "   - Provide real, working URLs for official sources (SARS, Yoco, Dept of Labour). "
             f"\n\nUser question: {query}"
         )
         
@@ -95,8 +95,7 @@ def run_search(query):
     except Exception as e:
         st.session_state.ai_result = f"Error communicating with AI: {str(e)}"
 
-# --- CALLBACKS (Crucial for button stability) ---
-
+# --- CALLBACKS ---
 def toggle_ai_visibility():
     st.session_state.ai_visible = not st.session_state.ai_visible
 
@@ -109,10 +108,15 @@ def on_filter_change():
     if st.session_state.ai_result:
         st.session_state.ai_visible = False
 
+# New callback for the "Explain Impact" button
+def explain_impact(article_title):
+    # This constructs a specific prompt for the AI
+    query = f"Explain the practical impact of the article '{article_title}' for a small business owner in South Africa. What do I need to do?"
+    run_search(query)
+
 # --- 6. CSS STYLING ---
 st.markdown("""
 <style>
-    /* Import 'Anton' for the big PHANDA header, and Inter for body */
     @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;900&display=swap');
 
     html, body, [class*="css"] {
@@ -131,74 +135,41 @@ st.markdown("""
         padding-bottom: 5rem;
     }
 
-    /* HEADER CONTAINER */
+    /* HEADER */
     .yoco-header-container {
-        background-color: #0F172A; /* Deep Navy */
+        background-color: #0F172A;
         padding: 4rem 2rem 3rem 2rem;
         border-radius: 15px;
         margin-bottom: 30px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        display: flex; flex-direction: column; align-items: center; text-align: center;
     }
-
-    /* 1. PHANDA HEADER */
     .phanda-title {
-        font-family: 'Anton', sans-serif; /* Big, Impact-style font */
-        font-size: 8rem; /* Massive size */
-        color: #FFFFFF;
-        line-height: 0.9;
-        letter-spacing: 2px;
-        margin-bottom: 15px;
-        text-transform: uppercase;
+        font-family: 'Anton', sans-serif; font-size: 8rem; color: #FFFFFF;
+        line-height: 0.9; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase;
     }
-
-    /* 2. SUB-ROW: 'a [Logo] publication' */
     .sub-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        color: #FFFFFF;
-        font-family: 'Inter', sans-serif;
-        font-size: 1.2rem;
-        font-weight: 400;
-        opacity: 0.9;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        color: #FFFFFF; font-family: 'Inter', sans-serif; font-size: 1.2rem; opacity: 0.9;
     }
-
-    /* Small Logo for the sub-row */
-    .yoco-logo-small {
-        height: 24px; /* Scaled down to fit with text */
-        width: auto;
-        margin-top: 2px; /* Visual alignment */
-    }
-
-    /* TAGLINE */
+    .yoco-logo-small { height: 24px; width: auto; margin-top: 2px; }
     .tagline-text {
-        margin-top: 25px;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        font-size: 1.5rem;
-        color: #FFFFFF;
+        margin-top: 25px; font-family: 'Montserrat', sans-serif; font-weight: 700;
+        font-size: 1.5rem; color: #FFFFFF;
     }
-    
     .description-text {
-        margin-top: 8px;
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        color: #94A3B8;
-        max-width: 600px;
+        margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 1rem;
+        color: #94A3B8; max-width: 600px;
     }
 
-    /* BUTTONS & CARDS */
+    /* BUTTONS */
     .stButton button {
         border-radius: 20px; font-size: 0.8rem; background-color: white;
         color: #5c6c7f; border: 1px solid #eee; padding: 0.25rem 1rem; width: 100%;
     }
     .stButton button:hover { border-color: #009fe3; color: #009fe3; }
     
+    /* CARDS */
     div[data-testid="stColumn"] {
         background-color: white; border: 1px solid #eef0f2; border-radius: 12px;
         padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
@@ -209,7 +180,7 @@ st.markdown("""
         border-color: #009fe3;
     }
 
-    /* TAGS */
+    /* PILLS & TAGS */
     .type-pill {
         font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
         padding: 6px 10px; border-radius: 6px; background: #f4f6f8; color: #5c6c7f;
@@ -228,8 +199,8 @@ st.markdown("""
     .cat-finances { background: #ffebee; color: #c62828; }
     .cat-operating { background: #e3f2fd; color: #1565c0; }
     .cat-team { background: #f1f8e9; color: #33691e; }
-    
-    /* TEXT */
+    .cat-regulatory { background: #eceff1; color: #455a64; border: 1px solid #cfd8dc; }
+
     h3 { font-size: 1.15rem; font-weight: 700; color: #232d39; margin: 0 0 10px 0; min-height: 3.9em; }
     p { font-size: 0.95rem; color: #5c6c7f; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
     .source-text { font-size: 0.8rem; color: #999; border-top: 1px solid #f4f6f8; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -259,7 +230,6 @@ header_html = f"""
 st.markdown(header_html, unsafe_allow_html=True)
 
 # B. SEARCH INPUT
-# Using on_change callback to trigger search safely
 st.text_input("", 
               placeholder="Ask Phanda AI anything...", 
               key="main_search_input",
@@ -274,7 +244,7 @@ for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
             run_search(prompt_text)
             st.rerun()
 
-# D. AI RESULT SECTION (With Hide/Show Logic)
+# D. AI RESULT SECTION
 if st.session_state.ai_result:
     st.markdown("---")
     
@@ -286,7 +256,6 @@ if st.session_state.ai_result:
             st.caption(f"🤖 AI Insight (Hidden) for: **{st.session_state.search_query}**")
             
     with col_res_2:
-        # Toggle Button using on_click CALLBACK
         btn_label = "🙈 Hide" if st.session_state.ai_visible else "👁️ Show"
         st.button(btn_label, key="toggle_ai_btn", on_click=toggle_ai_visibility)
 
@@ -300,7 +269,6 @@ st.markdown("---")
 
 categories = list(CATEGORY_COLORS.keys())
 
-# Filters using on_change CALLBACK
 selected_categories = st.pills(
     "Filter insights:", 
     categories, 
@@ -339,7 +307,7 @@ for row in rows:
     for i, item in enumerate(row):
         
         # Color Logic
-        cat_class = "cat-operating"
+        cat_class = "cat-operating" # default
         for cat_name, _ in CATEGORY_COLORS.items():
             if item['category'] == cat_name:
                 if "Starting" in cat_name: cat_class = "cat-starting"
@@ -348,8 +316,10 @@ for row in rows:
                 elif "Finances" in cat_name: cat_class = "cat-finances"
                 elif "Operating" in cat_name: cat_class = "cat-operating"
                 elif "Growing" in cat_name: cat_class = "cat-team"
+                elif "Regulatory" in cat_name: cat_class = "cat-regulatory"
         
         with cols[i]:
+            # Render the Card Content as HTML
             st.markdown(f"""
                 <div style="height:100%;">
                     <div class="type-pill">{item['type']}</div>
@@ -363,3 +333,12 @@ for row in rows:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+
+            # SPECIAL FEATURE: If this is a Regulatory Update, add the "Explain" button
+            if item['category'] == "Regulatory Updates":
+                st.button(
+                    "🤖 Explain Impact", 
+                    key=f"explain_btn_{i}_{item['title']}", # Unique key
+                    on_click=explain_impact, 
+                    args=(item['title'],)
+                )
