@@ -63,15 +63,22 @@ EXAMPLE_PROMPTS = [
 ]
 
 # --- 5. HELPER FUNCTIONS ---
-def run_search(query):
-    """Executes the AI search and makes result visible."""
+
+def trigger_search(query):
+    """
+    Updates the session state to initiate a search.
+    Note: Does NOT run the API call directly. This allows the UI 
+    to refresh, show the spinner in the right place, and then run the logic.
+    """
     st.session_state.search_query = query
     st.session_state.ai_visible = True
-    
-    if not api_key:
-        st.session_state.ai_result = "⚠️ Please configure your Gemini API Key."
-        return
+    st.session_state.ai_result = None # Resetting this triggers the spinner in the main loop
 
+def generate_ai_response(query):
+    """The actual API call function."""
+    if not api_key:
+        return "⚠️ Please configure your Gemini API Key."
+        
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('models/gemini-2.5-flash') 
@@ -87,12 +94,11 @@ def run_search(query):
             f"\n\nUser question: {query}"
         )
         
-        with st.spinner("Phanda is thinking..."):
-            response = model.generate_content(system_prompt)
-            st.session_state.ai_result = response.text
+        response = model.generate_content(system_prompt)
+        return response.text
             
     except Exception as e:
-        st.session_state.ai_result = f"Error communicating with AI: {str(e)}"
+        return f"Error communicating with AI: {str(e)}"
 
 # --- CALLBACKS ---
 def toggle_ai_visibility():
@@ -100,8 +106,8 @@ def toggle_ai_visibility():
 
 def handle_search_submit():
     query = st.session_state.main_search_input
-    if query and query != st.session_state.search_query:
-        run_search(query)
+    # Trigger only if query changed or forced
+    trigger_search(query)
 
 def on_filter_change():
     if st.session_state.ai_result:
@@ -111,13 +117,11 @@ def explain_impact(article_title):
     # Construct the question
     query = f"Explain the practical impact of the article '{article_title}' for a small business owner in South Africa. What do I need to do?"
     
-    # 1. Update the logical search state
-    st.session_state.search_query = query
-    # 2. Update the VISUAL text input widget state (so the user sees the query in the bar)
+    # Update search bar for visual feedback
     st.session_state.main_search_input = query
     
-    # 3. Run the search
-    run_search(query)
+    # Trigger the search state
+    trigger_search(query)
 
 # --- 6. CSS STYLING ---
 st.markdown("""
@@ -246,25 +250,31 @@ cols = st.columns(len(EXAMPLE_PROMPTS))
 for i, prompt_text in enumerate(EXAMPLE_PROMPTS):
     with cols[i]:
         if st.button(prompt_text, use_container_width=True):
-            run_search(prompt_text)
+            trigger_search(prompt_text)
             st.rerun()
 
 # D. AI RESULT SECTION
-if st.session_state.ai_result:
+if st.session_state.ai_visible:
     st.markdown("---")
     
     col_res_1, col_res_2 = st.columns([5, 1])
     with col_res_1:
-        if st.session_state.ai_visible:
-            st.caption(f"🤖 AI Insight for: **{st.session_state.search_query}**")
-        else:
-            st.caption(f"🤖 AI Insight (Hidden) for: **{st.session_state.search_query}**")
+        st.caption(f"🤖 AI Insight for: **{st.session_state.search_query}**")
             
     with col_res_2:
-        btn_label = "🙈 Hide" if st.session_state.ai_visible else "👁️ Show"
+        btn_label = "🙈 Hide"
         st.button(btn_label, key="toggle_ai_btn", on_click=toggle_ai_visibility)
 
-    if st.session_state.ai_visible:
+    # LOGIC: If result is None, it means we need to fetch it (Showing Spinner)
+    # This logic block runs AFTER the divider, so the spinner appears under the line.
+    if st.session_state.ai_result is None:
+        with st.spinner("Phanda AI is thinking..."):
+            result_text = generate_ai_response(st.session_state.search_query)
+            st.session_state.ai_result = result_text
+        st.rerun() # Force a rerun to display the text immediately
+    
+    else:
+        # Display the result
         with st.chat_message("assistant", avatar="⚡"):
             st.write(st.session_state.ai_result)
 
@@ -337,7 +347,6 @@ for row in rows:
                 </div>
             """, unsafe_allow_html=True)
 
-            # SPECIAL FEATURE: If Regulatory Update, add "Explain" button
             if item['category'] == "Regulatory Updates":
                 st.button(
                     "🤖 Explain Impact", 
