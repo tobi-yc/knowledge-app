@@ -67,15 +67,13 @@ EXAMPLE_PROMPTS = [
 def trigger_search(query):
     """
     Updates the session state to initiate a search.
-    Note: Does NOT run the API call directly. This allows the UI 
-    to refresh, show the spinner in the right place, and then run the logic.
+    Does NOT run the API call directly.
     """
     st.session_state.search_query = query
     st.session_state.ai_visible = True
-    st.session_state.ai_result = None # Resetting this triggers the spinner in the main loop
+    st.session_state.ai_result = None # Reset triggers spinner in main loop
 
 def generate_ai_response(query):
-    """The actual API call function."""
     if not api_key:
         return "⚠️ Please configure your Gemini API Key."
         
@@ -105,8 +103,8 @@ def toggle_ai_visibility():
     st.session_state.ai_visible = not st.session_state.ai_visible
 
 def handle_search_submit():
+    # Only updates from the search bar itself
     query = st.session_state.main_search_input
-    # Trigger only if query changed or forced
     trigger_search(query)
 
 def on_filter_change():
@@ -117,10 +115,8 @@ def explain_impact(article_title):
     # Construct the question
     query = f"Explain the practical impact of the article '{article_title}' for a small business owner in South Africa. What do I need to do?"
     
-    # Update search bar for visual feedback
-    st.session_state.main_search_input = query
-    
-    # Trigger the search state
+    # We trigger the search internally, but we DO NOT update st.session_state.main_search_input
+    # This keeps the search bar clean (or containing whatever user last typed).
     trigger_search(query)
 
 # --- 6. CSS STYLING ---
@@ -239,10 +235,10 @@ header_html = f"""
 st.markdown(header_html, unsafe_allow_html=True)
 
 # B. SEARCH INPUT
+# NOTE: removed 'value=' argument to decouple input box from background queries
 st.text_input("", 
               placeholder="Ask Phanda AI anything...", 
               key="main_search_input",
-              value=st.session_state.search_query,
               on_change=handle_search_submit)
 
 # C. EXAMPLE PROMPTS
@@ -266,13 +262,11 @@ if st.session_state.ai_visible:
         st.button(btn_label, key="toggle_ai_btn", on_click=toggle_ai_visibility)
 
     # LOGIC: If result is None, it means we need to fetch it (Showing Spinner)
-    # This logic block runs AFTER the divider, so the spinner appears under the line.
     if st.session_state.ai_result is None:
         with st.spinner("Phanda AI is thinking..."):
             result_text = generate_ai_response(st.session_state.search_query)
             st.session_state.ai_result = result_text
-        st.rerun() # Force a rerun to display the text immediately
-    
+        st.rerun()
     else:
         # Display the result
         with st.chat_message("assistant", avatar="⚡"):
