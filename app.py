@@ -22,7 +22,6 @@ if 'ai_visible' not in st.session_state:
     st.session_state.ai_visible = False
 
 # --- 4. DATA & COLORS ---
-# Added "Regulatory Updates" with a distinct Slate Blue color
 CATEGORY_COLORS = {
     "Starting Your Business": "#00695c",
     "Reaching Customers": "#7b1fa2",
@@ -30,15 +29,15 @@ CATEGORY_COLORS = {
     "Managing Your Finances": "#c62828",
     "Operating Your Business": "#1565c0",
     "Growing Your Team": "#33691e",
-    "Regulatory Updates": "#455a64" # NEW: Slate Grey/Blue
+    "Regulatory Updates": "#455a64" 
 }
 
 CONTENT_DATA = [
-    # --- NEW REGULATORY CONTENT ---
+    # --- REGULATORY CONTENT ---
     {"category": "Regulatory Updates", "title": "SARS Announces Real-Time VAT Reporting Plans for 2027", "summary": "SARS is moving towards real-time digital VAT reporting. Understand the timeline and what software upgrades might be required.", "source": "SARS", "link": "https://www.sars.gov.za", "location": "South Africa", "type": "official notice"},
     {"category": "Regulatory Updates", "title": "New Employment Equity Targets: Sector Guide", "summary": "Department of Employment and Labour has gazetted new sectoral targets. Check if your small business falls under the designated employer scope.", "source": "Dept of Labour", "link": "https://www.labour.gov.za", "location": "South Africa", "type": "legislation"},
     
-    # --- YOCO OFFICIAL GUIDES ---
+    # --- YOCO OFFICIAL ---
     {"category": "Reaching Customers", "title": "Learn how to use Instagram for your business", "summary": "A guide on switching to a business profile, optimizing bios, showcasing products, and using Reels to drive engagement.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/instagram-for-your-business/", "location": "South Africa", "type": "guide"},
     {"category": "Operating Your Business", "title": "How to choose a point of sale (POS) system", "summary": "Key questions and features to look for when selecting a POS, covering cloud vs. traditional systems and integration needs.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/choose-point-of-sale/", "location": "South Africa", "type": "guide"},
     {"category": "Starting Your Business", "title": "Behind the Counter with Sparkys: 5 takeaways for success", "summary": "Lessons from the Sparkys burger brand on starting small, maintaining quality, and choosing the right tech for efficiency.", "source": "Yoco", "link": "https://www.yoco.com/za/blog/yoco-meets-sparkys/", "location": "South Africa", "type": "case study"},
@@ -108,10 +107,16 @@ def on_filter_change():
     if st.session_state.ai_result:
         st.session_state.ai_visible = False
 
-# New callback for the "Explain Impact" button
 def explain_impact(article_title):
-    # This constructs a specific prompt for the AI
+    # Construct the question
     query = f"Explain the practical impact of the article '{article_title}' for a small business owner in South Africa. What do I need to do?"
+    
+    # 1. Update the logical search state
+    st.session_state.search_query = query
+    # 2. Update the VISUAL text input widget state (so the user sees the query in the bar)
+    st.session_state.main_search_input = query
+    
+    # 3. Run the search
     run_search(query)
 
 # --- 6. CSS STYLING ---
@@ -306,8 +311,7 @@ for row in rows:
     cols = st.columns(cols_per_row)
     for i, item in enumerate(row):
         
-        # Color Logic
-        cat_class = "cat-operating" # default
+        cat_class = "cat-operating" 
         for cat_name, _ in CATEGORY_COLORS.items():
             if item['category'] == cat_name:
                 if "Starting" in cat_name: cat_class = "cat-starting"
@@ -319,7 +323,6 @@ for row in rows:
                 elif "Regulatory" in cat_name: cat_class = "cat-regulatory"
         
         with cols[i]:
-            # Render the Card Content as HTML
             st.markdown(f"""
                 <div style="height:100%;">
                     <div class="type-pill">{item['type']}</div>
@@ -334,11 +337,11 @@ for row in rows:
                 </div>
             """, unsafe_allow_html=True)
 
-            # SPECIAL FEATURE: If this is a Regulatory Update, add the "Explain" button
+            # SPECIAL FEATURE: If Regulatory Update, add "Explain" button
             if item['category'] == "Regulatory Updates":
                 st.button(
                     "🤖 Explain Impact", 
-                    key=f"explain_btn_{i}_{item['title']}", # Unique key
+                    key=f"explain_btn_{i}_{item['title']}", 
                     on_click=explain_impact, 
                     args=(item['title'],)
                 )
